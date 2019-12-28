@@ -414,80 +414,54 @@
         - else, load ROMMON mode
     - Configuration register 0x2100: ROMMON, last hex is 0
 
-## Routing
+## Routing protocol
 
-ルート情報
-AD値
-略字
-直接接続ルート
-0
-C
-スタティックルート
-1
-S
-EIGRP - サマリールート
-5
+| ルート情報 | AD値 | 略字 |
+| ---- | ---- | ---- |
+| 直接接続ルート | 0 | C |
+| スタティックルート | 1 | S |
+| EIGRP - サマリールート | 5 | | 
+| BGP - 外部 | 20 | |
+| EIGRP - 内部 | 90 | D |
+| IGRP | 100 | |
+| OSPF | 110 | O |
+| IS-IS | 115 | |
+| RIP | 120 | R |
+| ODR | 160 | |
+| EIGRP - 外部 | 170 | EX |
+| BGP - 内部 | 200 | |
+| 不明 - ( Routing Table にのらない ) | 255 | |
 
-
-BGP - 外部
-20
-
-
-EIGRP - 内部
-90
-D
-IGRP
-100
-
-
-OSPF
-110
-O
-IS-IS
-115
-
-
-RIP
-120
-R
-ODR
-160
-
-
-EIGRP - 外部
-170
-EX
-BGP - 内部
-200
-
-
-不明 - ( Routing Table にのらない )
-255
-
-
-
-OSPF
-    Dijkstra
-RIP
-    Bellman-Ford
-EIGRP
-    DUAL
-
-IGP
-    RIP
-    Dijkstra or Bellman-Ford
-    OSPF
-    EIGRP
-EGP
-    BGP
-
-- Routing protocol
-    Distance-vector - (RIP, BGP) 伝言ゲーム
-        RIP: broadcast update, no VLSM
-        RIPv2
-multicast update, VLSM, hop-count, split horizon, route poisoning
-            update messages 224.0.0.9, auto-summary - (advertize classful subnet)
-    Link-state - (IS-IS, OSPF)　大規模, すべてのルータが同じ情報を持つ
+- IGP (AS内で使用されるプロトコル)
+    - Distance-vector 伝言ゲーム
+        - RIPv1
+            - Classful
+            - Bellman-Ford
+            - broadcase update
+            - no VLSM
+        - RIPv2
+            - Classless
+            - multicast update
+            - VLSM
+            - hop-count
+            - split horizon
+            - route poisoning
+            - update messages 224.0.0.9
+            - auto-summary (advertize classful subnet)
+        - IGRP
+            - Classful
+    - Link-state 全てのルータが同じ情報を持つ
+        - OSPF
+            - Classful
+        - IS-IS
+            - Classful
+    - Hybrid
+        - EIGRP
+            - Classful
+            - DUAL
+- EGP (AS間で使用されるプロトコル)
+    - Distance-vector
+        - BGP
 
 ## STP
 
