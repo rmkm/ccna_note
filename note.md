@@ -367,6 +367,33 @@
     (config) ntp master 2 (server)
 ```
 
+## OSPF
+- Basic setting
+```
+    (config) router ospf [process-id]
+    (config-router) router-id 1.1.1.1 
+    (config-router) network 10.24.55.10 0.0.0.0 are [area-id]
+    ! ワイルドカードでインターフェースを指定
+
+    # show ip protocols
+    # show ip ospf
+    # show ip ospf interface brief
+    # show ip ospf interface GigabitEthernet 0/0
+
+    # show ip ospf neighbor
+    # show ip ospf database
+```
+- Passive interface
+    - PCと接続しているインターフェースからはHelloパケットを送らない
+```
+    (config) router ospf [process-id]
+    (config-router) passive-interface GigabitEthernet 0/0 
+    ! OR
+    (config) router ospf [process-id]
+    (config-router) passive-interface default 
+    (config-router) no passive-interface vlan 10 
+```
+
 ## License
 
 - right-to-use
@@ -453,6 +480,11 @@
     - Link-state 全てのルータが同じ情報を持つ
         - OSPF
             - Classful
+            - Designated Router (DR) 代表ルータ
+                - プライオリティが最も大きいルータ
+                - 同じ場合、ルータIDが大きいルータ
+            - Backup Designated Router (BDR)
+            - DROTHER
         - IS-IS
             - Classful
     - Hybrid
