@@ -36,7 +36,7 @@
     (config) transport input ssh | Allow only ssh
     (config-if) login local
 ```
-- Varification
+- Verification
 ```
     # show running-config
     # show ip ssh
@@ -367,12 +367,24 @@
     (config) ntp master 2 (server)
 ```
 
+## License
+
+- right-to-use
+```
+    license boot module c2900 technology-package [technology-package]
+```
+
+- paid-for
+```
+    license install url
+```
+
 ## OSPF
 - Basic setting
 ```
     (config) router ospf [process-id]
     (config-router) router-id 1.1.1.1 
-    (config-router) network 10.24.55.10 0.0.0.0 are [area-id]
+    (config-router) network 10.24.55.10 0.0.0.0 area [area-id]
     ! ワイルドカードでインターフェースを指定
 
     # show ip protocols
@@ -394,16 +406,44 @@
     (config-router) no passive-interface vlan 10 
 ```
 
-## License
+## EIGRP
+- Basic setting
+```
+    (config) router eigrp [AS number]
+    ! BGPのASとは違う
+    ! Must be same as neighbor's AS number
+    (config-router) network 10.24.55.10 0.0.0.0
+    ! ワイルドカードでインターフェースを指定
 
-- right-to-use
-```
-    license boot module c2900 technology-package [technology-package]
-```
+    # show running-config
+    # show ip eigrp interfaces
+    # show ip protocols
 
-- paid-for
+    # show ip eigrp neighbors 
+    # show ip eigrp topology 
 ```
-    license install url
+- Optional
+```
+    ! Bandwidth
+    ! メトリック計算用
+    (config-if) bandwidth [kbps]
+
+    ! Load balancing
+    ! ルーティングテーブルに格納する同じメトリック値のルート数
+    (config-router) maximum-paths [value = 4]
+
+    ! Unequal-cost load balancing
+    ! 最小メトリックの2倍の範囲までルーティングテーブルに格納
+    (config-router) variance 2
+
+    ! Auto-summary
+    ! Enable
+    (config-router) auto-summary 
+    ! Disable
+    (config-router) no auto-summary 
+
+    ! Debug
+    # debug eigrp fsm
 ```
 
 # Note
@@ -489,8 +529,12 @@
             - Classful
     - Hybrid
         - EIGRP
-            - Classful
-            - DUAL
+            - Classless
+            - Diffusing Update Algorithm (DUAL)
+            - Successor (S) : プライマリルート, 最小のFD
+            - Feasible Successor (FS) : バックアップルート, SのFDより小さなADのルート
+            - Advertised Distance (AD) : Neighbor to Dst
+            - Feasible Distance (FD) : Localhost to Dst
 - EGP (AS間で使用されるプロトコル)
     - Distance-vector
         - BGP
