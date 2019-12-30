@@ -234,11 +234,11 @@
 ```
 
 - Serial DCE DTE(no clock) DB60
-    - DTE -> (シリアルケーブル) -> DCE -> キャリアの網 -> DCE -> DTE
+    - DTE -> (シリアルケーブル) -> DCE -> キャリア網 -> DCE -> DTE
     - DCEからDTEにクロック供給
 ```
-    (config-if) clock rate128000
-    (config-if) bandwidth 1544
+    (config-if) clock rate 128000 (bps)
+    (config-if) bandwidth 1544 (kbps)
 ```
 
 - Static route
@@ -446,6 +446,26 @@
     # debug eigrp fsm
 ```
 
+## BGP
+- Basic
+```
+    ! only 1 BGP routing process per router
+    (config) router bgp [AS number]
+    ! must configure neighbor manually
+    (config-router) neighbor [ip address] remote-as [AS number]
+    ! 自分のAS内のルート情報をBGPルートとしてアドバタイズ
+    (config-router) network [ip address] mask [mask]
+
+    # show ip bgp summary
+    # show ip bgp
+    # show tcp brief
+```
+- Option
+```
+    ! Disable neighbor
+    (config-router) neighbor 10.24.55.10 shutdown
+```
+
 # Note
 
 ## IPv6
@@ -538,6 +558,8 @@
 - EGP (AS間で使用されるプロトコル)
     - Distance-vector
         - BGP
+            - IBGP peer (same AS)
+            - EBGP peer (other AS)
 
 ## STP
 
@@ -553,6 +575,27 @@
     - pvst
     - rapid-pvst
     - mst
+
+## WAN
+
+- DTE -> DCE -> キャリア網 -> DCE -> DTE
+
+| WAN device | 説明 |
+| ---- | ---- |
+| DTE | Data Terminal Equipment. ルータやパソコン |
+| DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム、DSU、ONUが該当。|
+
+- HDLC
+- PPP
+    - 認証
+        - PAP
+            - Clear text
+        - CHAP
+            - Use hash
+            - 両方のルータでパスワードを設定しておく
+    - 圧縮
+    - マルチリンク
+    - エラー制御
 
 ## Misc
 
