@@ -249,7 +249,7 @@
     # show ip route
 
     - (config) ipv6 route 8163:bc23:4632:ac23::/64 Gi0/0 fe80::1234:7484:26b4:2362
-    ! Link local address は Interface も必要
+! Link local address は Interface も必要
 
     # show ipv6 route
 ```
@@ -276,8 +276,8 @@
     # show ip rip database
 
     (config-router) passive-interface GigabitEthernet0/0
-    ! RIPのルーティングテーブルやHelloメッセージを出さない
-    ! ホストと接続しているインタフェースに使う
+! RIPのルーティングテーブルやHelloメッセージを出さない
+! ホストと接続しているインタフェースに使う
 ```
 ## DHCP server
 ```
@@ -289,7 +289,7 @@
     # show ip dhcp binding
     # show ip dhcp pool [pool-name]
 
-    ! Relay
+! Relay
     (config-if) ip helper-address [DHCP server’s IP address]
     (config-if) ipv6 dhcp relay destination [DHCP server’s IP address]
 ```
@@ -357,7 +357,7 @@
 - terminal monitor: debug command output, not default
 - logging buffered: save log to RAM for later view
 ```
-    ! LOG
+! LOG
     # debug ip rip
 ```
 
@@ -385,7 +385,7 @@
     (config) router ospf [process-id]
     (config-router) router-id 1.1.1.1 
     (config-router) network 10.24.55.10 0.0.0.0 area [area-id]
-    ! ワイルドカードでインターフェースを指定
+! ワイルドカードでインターフェースを指定
 
     # show ip protocols
     # show ip ospf
@@ -400,7 +400,7 @@
 ```
     (config) router ospf [process-id]
     (config-router) passive-interface GigabitEthernet 0/0 
-    ! OR
+! OR
     (config) router ospf [process-id]
     (config-router) passive-interface default 
     (config-router) no passive-interface vlan 10 
@@ -410,10 +410,10 @@
 - Basic setting
 ```
     (config) router eigrp [AS number]
-    ! BGPのASとは違う
-    ! Must be same as neighbor's AS number
+! BGPのASとは違う
+! Must be same as neighbor's AS number
     (config-router) network 10.24.55.10 0.0.0.0
-    ! ワイルドカードでインターフェースを指定
+! ワイルドカードでインターフェースを指定
 
     # show running-config
     # show ip eigrp interfaces
@@ -424,36 +424,36 @@
 ```
 - Optional
 ```
-    ! Bandwidth
-    ! メトリック計算用
+! Bandwidth
+! メトリック計算用
     (config-if) bandwidth [kbps]
 
-    ! Load balancing
-    ! ルーティングテーブルに格納する同じメトリック値のルート数
+! Load balancing
+! ルーティングテーブルに格納する同じメトリック値のルート数
     (config-router) maximum-paths [value = 4]
 
-    ! Unequal-cost load balancing
-    ! 最小メトリックの2倍の範囲までルーティングテーブルに格納
+! Unequal-cost load balancing
+! 最小メトリックの2倍の範囲までルーティングテーブルに格納
     (config-router) variance 2
 
-    ! Auto-summary
-    ! Enable
+! Auto-summary
+! Enable
     (config-router) auto-summary 
-    ! Disable
+! Disable
     (config-router) no auto-summary 
 
-    ! Debug
+! Debug
     # debug eigrp fsm
 ```
 
 ## BGP
 - Basic
 ```
-    ! only 1 BGP routing process per router
+! only 1 BGP routing process per router
     (config) router bgp [AS number]
-    ! must configure neighbor manually
+! must configure neighbor manually
     (config-router) neighbor [ip address] remote-as [AS number]
-    ! 自分のAS内のルート情報をBGPルートとしてアドバタイズ
+! 自分のAS内のルート情報をBGPルートとしてアドバタイズ
     (config-router) network [ip address] mask [mask]
 
     # show ip bgp summary
@@ -462,9 +462,121 @@
 ```
 - Option
 ```
-    ! Disable neighbor
+! Disable neighbor
     (config-router) neighbor 10.24.55.10 shutdown
 ```
+
+## WAN
+
+### High-Level Data Link Control (HDLC)
+- Basic
+```
+    (config) interface s0/0
+    (config-if) ip address 192.168.1.1 mask 255.255.255.0
+    (config-if) encapsulation hdlc
+
+! optional 
+! if the serial link is a back-to-back serial link
+! Use this command on DCE
+    (config-if) clock rate 128000 (bps)
+    # show controllers serial0/0
+
+! optional 
+    (config-if) bandwidth 1544 (kbps)
+```
+
+### Point-to-Point Protocol (PPP)
+- Basic
+```
+    (config) interface s0/0
+    (config-if) ip address 192.168.1.1 mask 255.255.255.0
+    (config-if) encapsulation ppp 
+```
+- CHAP
+    - secure
+```
+    (config) hostname R1
+! username must match remote hostname
+! password must match remote router's configuration
+    (config) username R2 password morishima 
+    (config) interface serial0/0
+    (config-if) ip address 192.168.1.1 255.255.255.0
+    (config-if) encapsulation ppp
+    (config-if) ppp authentication chap
+
+    # show ppp all
+```
+- PAP
+    - clear text password
+```
+    (config) hostname R1
+! username must match remote hostname
+! password must match remote router's "ppp pap ... " command 
+    (config) username R2 password pass2 
+    (config) interface serial0/0
+    (config-if) ip address 192.168.1.1 255.255.255.0
+    (config-if) encapsulation ppp
+    (config-if) ppp authentication pap
+    (config-if) ppp pap sent-username R1 pass1
+```
+- Multilink PPP (MLPPP)
+```
+! Create multilink interface
+    (config) interface multilink [bundle-number]
+    (config-if) ip address 192.168.1.10 255.255.255.0
+    (config-if) ppp multilink
+! if use CHAP
+    (config-if) ppp authentication chap
+! group-number must match budle-number and remote as well
+    (config-if) ppp multilink group [group-number] 
+
+! Assign physical interface
+    (config) interface serial0/0
+    (config-if) no ip address
+    (config-if) encapsulation ppp
+    (config-if) ppp multilink
+    (config-if) ppp multilink group [group-number]
+
+    # show ip route
+    # show interfaces multilink 1
+    # show ppp multilink
+```
+
+## VPN
+
+### General Routing Encapsulation (GRE) tunnel
+- Basic
+```
+　  (config) interface tunnel [number]
+　  (config-if) ip address 10.1.1.1 255.255.255.0
+　  (config-if) tunnel source 1.1.1.1
+! remote router's ip address
+　  (config-if) tunnel  destination 2.2.2.2
+
+    # show ip interface brief
+    # show interfaces tunnel0
+```
+- ACL that permit GRE
+```
+    (config) ip access-list extended inbound-from-Internet
+    (config-ext-nacl) permit tcp
+    (config-ext-nacl) permit udp
+    (config-ext-nacl) permit gre any any 
+    (config-ext-nacl) interface s0/0/0
+    (config-if) ip access-group inbound-from-Internet in 
+```
+
+### Dynamic Multipoint VPN (DMVPN)
+- ハブアンドスポーク
+    - スポーク拠点間の通信のためにハブ拠点経由するので遅延が発生
+- フルメッシュ
+    - コンフィグ量が多くなり管理上の手間が発生
+- DMVPNのソリューション
+    - オンデマンドにスポーク間VPNを構築
+    - Next Hop Resolution Protocol (NHRP) でスポークはハブに自身のIPアドレスを登録
+    - NHRPでハブは他のスポークにそのIPアドレスを通知
+
+### PPP over Ethernet (PPPoE)
 
 # Note
 
