@@ -577,6 +577,27 @@
     - NHRPでハブは他のスポークにそのIPアドレスを通知
 
 ### PPP over Ethernet (PPPoE)
+- Basic
+```
+    (config) interface dialer 2
+    (config-if) ip address negotiated
+    (config-if) mtu 1492
+    (config-if) encapsulation ppp
+! hostname given from ISP
+    (config-if) ppp chap hostname Fred
+! password given from ISP
+    (config-if) ppp chap password Barney 
+    (config-if) dialer pool 1
+
+    (config) interface GigabitEthernet 0/0
+    (config-if) no ip address 
+    (config-if) pppoe enable
+    (config-if) pppoe-client dial-pool-number 1
+
+    # show pppoe session
+    # show interface dialer 2
+    # show interface virtual-access 2 configuration
+```
 
 # Note
 
