@@ -123,7 +123,53 @@
     # show interfaces switchport
 ```
 
-## Spanning Tree Protocol - (STP)
+## Spanning Tree Protocol (STP) and Rapid STP (RSTP)
+
+- IEEE 802.1D Spanning-Tree States
+
+| State | Forwards Data Frames? | Learns MACs Based on Received Frames? | Transitory or Stable State? |
+| ---- | ---- | ---- | ---- |
+| Blocking | No | No | Stable |
+| Listening | No | No | Transitory |
+| Learning | No | Yes | Transitory |
+| Forwarding | Yes | Yes | Stable |
+| Disabled | No | No | Stable |
+
+- Port Roles in 802.1D STP
+
+| Function | Port Role |
+| ---- | ---- |
+| Nonroot switch's best path to the root | Root port |
+| Switch port designated to forward onto a collision domain | Designated port |
+| Switch port that was not chonsen as RP nor DP | NonDesignated port |
+
+- Port Roles in 802.1w RSTP
+
+| Function | Port Role |
+| ---- | ---- |
+| Nonroot switch's best path to the root | Root port |
+| Switch port designated to forward onto a collision domain | Designated port |
+| Replaces the root port when the root port fails | Alternate port |
+| Replaces a designated port when a designated port fails | Backup port |
+
+- Port States Compared: 802.1D STP and 802.1w RSTP
+
+| Function | 802.1D State | 802.1w State |
+| ---- | ---- | ---- |
+| Port is administratively disavled | Disabled | Discarding |
+| Stable state that ignores incoming data frames and is not used to forward data frames | Blocking | Discarding |
+| Interim state without MAC learning and without forwarding | Listening | Not used |
+| Interim state with MAC learning and without forwarding | Learning | Learning |
+| Stable state that allows MAC learning and forwarding of data frames | Forwaring | Forwarding |
+
+- RSTP Port Types
+
+| Type | Current Duplex Status | Is Spanning-Tree PortFast Configured? |
+| ---- | ---- | ---- |
+| Point-to-point | Full | No |
+| Point-to-point edge | Full | Yes |
+| Shared | Half | No |
+| Shared edge | Half | Yes |
 
 -  Enable STP
 ```
@@ -137,18 +183,30 @@
 ```
 
 - Bridge priority
-    - 4096単位
 ```
-    (config) spanning-tree vlan 10 priority [priority]
+! 4096単位
+    (config) spanning-tree vlan 10 priority [priority_number]
+    (config) spanning-tree vlan 10 root [ primary | secondary ]
 ```
 
-- PortFast パソコンとつなぐポートはフォワーディング
+- Interface cost
+    - 100 for 10 Mbps
+    - 19 for 100 Mbps
+    - 4 for 1 Gbps
+    - 2 for 10 Gbps
+```
+    (config-if) spanning-tree vlan 10 cost [cost]
+```
+
+- PortFast
+    - パソコンとつなぐポートはフォワーディング
 ```
     (config) spanning-tree portfast default OR
     (config-if) spanning-tree portfast
 ```
 
-- BPDU Guard PortFastポートがBPDU- (STPのメッセ)を受信したらブロッキングする
+- BPDU Guard
+    - PortFastポートがBPDU(STPのメッセ)を受信したらブロッキングする
 ```
     (config-if) spanning-tree bpduguard [ enable | disable ]
 ```
@@ -181,6 +239,8 @@
 - Version
 ```
     (config) vtp version [ 1 | 2 | 3 ]
+! version 1,2 ... Extended VLAN not allowd
+! version 3 ... Extended VLAN allowd
 ```
 
 - Domain
@@ -199,6 +259,7 @@
 ```
 
 - VTP pruning
+    - 不要なVLANトラフィックの伝送を動的に止める機能
 ```
     (config) (no) vtp pruning
 
@@ -708,6 +769,29 @@
     - pvst
     - rapid-pvst
     - mst
+
+## L2 Security
+- IEEE802.1X
+    - 有線LANや無線LANにおけるユーザ認証の規格
+- AAA 3つのセキュリティ機能
+    - Authentication
+        - 認証
+    - Authorization
+        - 認証に成功したユーザに対して提供する権限
+    - Accounting
+- AAAの実装
+    - RADIUS
+        - IETF standard
+        - UDP 1812, 1813
+        - パスワード情報のみ暗号化
+    - TACACS+
+        - Cisco original
+        - TCP 49
+        - パケット全体を暗号化
+        - ユーザごとに異なるCLI群の認証
+- DHCP Snooping on switch 嗅ぐ->盗み見る
+    - Trusted: Switch, Router, DHCP Server
+    - Untrusted: Client device such as PC
 
 ## WAN
 
