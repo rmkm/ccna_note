@@ -466,20 +466,13 @@
         ルータの負荷軽減
 
 - OSPF ルータの種類
-    - 内部ルータ
 
-        全てのインターフェースを同じエリアに接続しているルータ
-
-    - バックボーンルータ
-
-        1つ以上のインターフェースをバックボーンエリアに接続しているルータ
-    - Area Border Router (ABR)
-
-        異なるエリアを接続しているルータ
-
-    - AS Boundary Router (ASBR)
-    
-        1つ以上のインターフェースが外部ASのルータと接続しているルータ
+| ルータ | 説明 |
+| ---- | ---- |
+| 内部ルータ | 全てのインターフェースを同じエリアに接続しているルータ |
+| バックボーンルータ | 1つ以上のインターフェースをバックボーンエリアに接続しているルータ |
+| Area Border Router (ABR) | 異なるエリアを接続しているルータ |
+| AS Boundary Router (ASBR) | 1つ以上のインターフェースが外部ASのルータと接続しているルータ |
 
 - Designated Router (DR) and Backup Designated Router (BDR)
     - DR 代表ルータ
@@ -595,6 +588,25 @@
 ```
 
 ## WAN
+
+- DTE -> DCE -> キャリア網 -> DCE -> DTE
+
+| WAN device | 説明 |
+| ---- | ---- |
+| DTE | Data Terminal Equipment. ルータやパソコン |
+| DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム、DSU、ONUが該当。|
+
+- HDLC
+- PPP
+    - 認証
+        - PAP
+            - Clear text
+        - CHAP
+            - Use hash
+            - 両方のルータでパスワードを設定しておく
+    - 圧縮
+    - マルチリンク
+    - エラー制御
 
 ### High-Level Data Link Control (HDLC)
 - Basic
@@ -849,27 +861,6 @@
 - DHCP Snooping on switch 嗅ぐ->盗み見る
     - Trusted: Switch, Router, DHCP Server
     - Untrusted: Client device such as PC
-
-## WAN
-
-- DTE -> DCE -> キャリア網 -> DCE -> DTE
-
-| WAN device | 説明 |
-| ---- | ---- |
-| DTE | Data Terminal Equipment. ルータやパソコン |
-| DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム、DSU、ONUが該当。|
-
-- HDLC
-- PPP
-    - 認証
-        - PAP
-            - Clear text
-        - CHAP
-            - Use hash
-            - 両方のルータでパスワードを設定しておく
-    - 圧縮
-    - マルチリンク
-    - エラー制御
 
 ## Misc
 
