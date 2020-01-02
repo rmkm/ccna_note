@@ -594,7 +594,7 @@
 | WAN device | 説明 |
 | ---- | ---- |
 | DTE | Data Terminal Equipment. ルータやパソコン |
-| DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム、DSU、ONUが該当。|
+| DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム(アナログ)、CSU/DSU(デジタル)、ONUが該当。|
 
 - HDLC
 - PPP
@@ -607,6 +607,9 @@
     - 圧縮
     - マルチリンク
     - エラー制御
+
+- Customer Edge (CE)
+- Provider Edge (PE)
 
 ### High-Level Data Link Control (HDLC)
 - Basic
@@ -663,18 +666,20 @@
 ```
 ! Create multilink interface
     (config) interface multilink [bundle-number]
-    (config-if) ip address 192.168.1.10 255.255.255.0
-    (config-if) ppp multilink
-! if use CHAP
-    (config-if) ppp authentication chap
-! group-number must match budle-number and remote as well
-    (config-if) ppp multilink group [group-number] 
-
-! Assign physical interface
-    (config) interface serial0/0
-    (config-if) no ip address
     (config-if) encapsulation ppp
     (config-if) ppp multilink
+    (config-if) ip address 192.168.1.10 255.255.255.0
+! group-number must match budle-number and remote as well
+    (config-if) ppp multilink group [group-number] 
+! if use CHAP
+    (config-if) ppp authentication chap
+
+! Assign physical interface
+! multilink interfaceと違うのはip addressの設定だけ
+    (config) interface serial0/0
+    (config-if) encapsulation ppp
+    (config-if) ppp multilink
+    (config-if) no ip address
     (config-if) ppp multilink group [group-number]
 
     # show ip route
@@ -691,7 +696,7 @@
 　  (config-if) ip address 10.1.1.1 255.255.255.0
 　  (config-if) tunnel source 1.1.1.1
 ! remote router's ip address
-　  (config-if) tunnel  destination 2.2.2.2
+　  (config-if) tunnel destination 2.2.2.2
 
     # show ip interface brief
     # show interfaces tunnel0
