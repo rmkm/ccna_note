@@ -441,6 +441,56 @@
 ```
 
 ## OSPF
+1. Helloパケットによるネイバー関係の確立
+
+    Init -> 2-Way -> Full
+
+2. Link State Advertisement (LSA) 交換
+3. Link State Database (LSDB) 作成
+4. トポロジマップ作成
+5. Shortest Path First (SPF) アルゴリズムを用いてSPFツリーを作成
+6. 最小コストのパスがルーティングテーブルに追加される
+
+- Area
+
+    LSAを交換する範囲を示す論理グループ，もしくは同じLSDBを持つOSPF
+　ルータの論理グループ
+
+- Single area and Multi area
+    - Single area 
+
+        Only area 0
+
+    - Multi area
+
+        ルータの負荷軽減
+
+- OSPF ルータの種類
+    - 内部ルータ
+
+        全てのインターフェースを同じエリアに接続しているルータ
+
+    - バックボーンルータ
+
+        1つ以上のインターフェースをバックボーンエリアに接続しているルータ
+    - Area Border Router (ABR)
+
+        異なるエリアを接続しているルータ
+
+    - AS Boundary Router (ASBR)
+    
+        1つ以上のインターフェースが外部ASのルータと接続しているルータ
+
+- Designated Router (DR) and Backup Designated Router (BDR)
+    - DR 代表ルータ
+        - プライオリティが最も大きいルータ
+        - 同じ場合、ルータIDが大きいルータ
+    - BDR
+    - DROTHER
+
+- Note
+    - Delayはパス選択に影響しない
+
 - Basic setting
 ```
     (config) router ospf [process-id]
@@ -448,12 +498,18 @@
     (config-router) network 10.24.55.10 0.0.0.0 area [area-id]
 ! ワイルドカードでインターフェースを指定
 
+! New style
+    (config) interface GigabitEthernet0/0
+    (config-if) ip address 10.1.23.2 255.255.255.0
+    (config-if) ip ospf 1 area 23
+
     # show ip protocols
     # show ip ospf
     # show ip ospf interface brief
     # show ip ospf interface GigabitEthernet 0/0
 
     # show ip ospf neighbor
+    # show ip ospf neighbor serial0/0
     # show ip ospf database
 ```
 - Passive interface
@@ -468,6 +524,14 @@
 ```
 
 ## EIGRP
+- Diffusing Update Algorithm (DUAL)
+
+- 用語
+    - Successor Route (S) : プライマリルート, 最小のFD
+    - Feasible Successor Route (FS) : バックアップルート, SのFDより小さなADのルート
+    - Advertised (Reported) Distance (AD) : Neighbor to Dst
+    - Feasible Distance (FD) : Localhost to Dst
+
 - Basic setting
 ```
     (config) router eigrp [AS number]
@@ -477,11 +541,13 @@
 ! ワイルドカードでインターフェースを指定
 
     # show running-config
-    # show ip eigrp interfaces
     # show ip protocols
+    # show ip eigrp interfaces
 
     # show ip eigrp neighbors 
     # show ip eigrp topology 
+        ! What you see
+        via 192.168.1.2 (FD/AD)
 ```
 - Optional
 ```
@@ -495,6 +561,7 @@
 
 ! Unequal-cost load balancing
 ! 最小メトリックの2倍の範囲までルーティングテーブルに格納
+! S,FSのみ
     (config-router) variance 2
 
 ! Auto-summary
@@ -734,21 +801,11 @@
     - Link-state 全てのルータが同じ情報を持つ
         - OSPF
             - Classful
-            - Designated Router (DR) 代表ルータ
-                - プライオリティが最も大きいルータ
-                - 同じ場合、ルータIDが大きいルータ
-            - Backup Designated Router (BDR)
-            - DROTHER
         - IS-IS
             - Classful
     - Hybrid
         - EIGRP
             - Classless
-            - Diffusing Update Algorithm (DUAL)
-            - Successor (S) : プライマリルート, 最小のFD
-            - Feasible Successor (FS) : バックアップルート, SのFDより小さなADのルート
-            - Advertised Distance (AD) : Neighbor to Dst
-            - Feasible Distance (FD) : Localhost to Dst
 - EGP (AS間で使用されるプロトコル)
     - Distance-vector
         - BGP
