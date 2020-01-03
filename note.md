@@ -361,25 +361,29 @@
 ```
 
 ## ACL
-- Standard: 1-99, 1300-1999
-- Extended: 100-199, 2000-2699
+- Standard
+    - 1-99, 1300-1999
+    - Match source IP
+- Extended
+    - 100-199, 2000-2699
+
 ```
     (config) access-list 1 permit 192.168.10.0 0.0.0.255
     (config) access-list 1 permit 192.168.20.0 0.0.0.255
     (config) interface gigabitEthernet 0/0
     (config-if) ip access-group 1 in | Apply
         or
-    (config-if) ip access-list extended Name (複数行設定)
+    (config-if) ip access-list extended [name] (複数行設定)
 
     # show access-lists
-    # show ip access-lists - (only IPv4)
+    # show ip access-lists (only IPv4)
     # show ip interface gigabitEthernet 0/0
 ```
 - Deleting
 ```
     (config) no access-list101 | Delete everything
         or
-    (config) ip access-list extended 101
+    (config) ip access-list [ "standard" | "extended" ] [ number | name ]
     (config-ext-nacl) no 20
 ```
 - telnet, sshでログインできる機器の制御
@@ -743,6 +747,33 @@
     # show interface dialer 2
     # show interface virtual-access 2 configuration
 ```
+
+## QoS
+- What manages
+    - Bandwidth
+    - Delay
+    - Jitter
+    - Loss
+
+- QoSのモデル
+
+| モデル | 説明 |
+| ---- | ---- |
+| Integrated Services (IntServ) | アプリケーションの通信フローごとに帯域を予約する方式 |
+| Differentiated Services (DIffServ) | トラフィックを分類、マーキング（優先度付け）、キューイング（トラフィックのキューへの振り分け）、スケジューリング（キューの優先度に応じたパケットの送出）する |
+| Best Effort | FIFO |
+
+1. Classification
+2. Marking
+    - L2 Marking
+        - End to End でない
+        - CoS: 802.1Qタグ内の3bitフィールド
+    - L3 Marking
+        - IP Precedence
+            - IPv4ヘッダ内のType of Service (ToS) フィールド先頭3bit
+        - Defferentiated Services Code Point (DSCP)
+            - Per Hop Behavior (PHB)
+            - IPv4ヘッダ内のType of Service (ToS) フィールド先頭6bit
 
 # Note
 
