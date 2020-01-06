@@ -772,7 +772,7 @@
         - End to End でない
         - CoS: 802.1Qタグ内の3bitフィールド
     - L3 Marking
-        - IP Precedence
+        - IP Precedence (IPP)
             - IPv4ヘッダ内のType of Service (ToS) フィールド先頭3bit
         - Defferentiated Services Code Point (DSCP)
             - Per Hop Behavior (PHB) DSCP値により処理を決めること
@@ -787,7 +787,7 @@
 
 - Policing
 
-    定義した通信速度を超過した場合、それ以上のパケットを破棄する
+    定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
 
 ## Inter-VLAN routing
 
@@ -874,8 +874,13 @@
 ```
     ! R1
     (config-if) standby 1 ip 10.1.1.1
+    ! higher is better
+    (config-if) standby 1 priority 110 
+    ! take over active when current avtive router's priority is lower than own priority
+    (config-if) standby 1 preempt 
     ! R2
     (config-if) standby 1 ip 10.1.1.1
+    (config-if) standby 1 priority 100 
 
     # show standby brief
     # show standby
