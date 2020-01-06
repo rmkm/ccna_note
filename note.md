@@ -114,6 +114,11 @@
     (config-if) switchport mode trunk|dynamic auto|dynamic desirable
         # show interfaces trunk
         # show interfaces switchport
+    
+    ! Remove vlan 10 from trunk
+    (config-if) switchport trunk allowd vlan remove 10
+    ! OR
+    (config-if) switchport trunk allowd vlan [all vlan except 10]
 ```
 
 - voice
@@ -171,6 +176,13 @@
 | Shared | Half | No |
 | Shared edge | Half | Yes |
 
+1. Root Bridge (RB) の選出
+1. Root Port (RP) の選出
+1. Designated Port (DP) の選出
+    - RBのすべてのポートはDP
+1. Non-Designated Port (NDP) の選出
+    - 残りのポート
+
 -  Enable STP
 ```
     (config) spanning-tree vlan 10
@@ -199,18 +211,29 @@
 ```
 
 - PortFast
-    - パソコンとつなぐポートはフォワーディング
+    - パソコンとつなぐポートはlisteningやlearningステートにせずにフォワーディングにする
 ```
-    (config) spanning-tree portfast default OR
     (config-if) spanning-tree portfast
+    ! OR
+    ! configure all ports as portfast
+    (config) spanning-tree portfast default
 ```
 
 - BPDU Guard
-    - PortFastポートがBPDU(STPのメッセ)を受信したらブロッキングする
+
+    PortFastポートがBPDU(STPのメッセ)を受信したらブロッキングする
+
 ```
     (config-if) spanning-tree bpduguard [ enable | disable ]
 ```
 
+- Root Guard
+
+    周囲のスイッチがルートスイッチになることを防止するための機能。ルートガードが有効になっているポートで上位のBPDUを受信すると、そのポートは root-inconsistent ステートへ移行し意図しない周囲のスイッチが、ルートスイッチにならないようにする。
+
+```
+    (config-if) spanning-tree guard root
+```
 - Dynamic root bridge あまり使わない
 ```
     (config) spanning-tree 10 root primary
@@ -619,6 +642,7 @@
 - Provider Edge (PE)
 
 ### High-Level Data Link Control (HDLC)
+- keep-alive should be equal on both side
 - Basic
 ```
     (config) interface s0/0
@@ -965,11 +989,12 @@
 - IGP (AS内で使用されるプロトコル)
     - Distance-vector 伝言ゲーム
         - RIPv1
-            - Classful
             - Bellman-Ford
+            - Classful
             - broadcase update
             - no VLSM
         - RIPv2
+            - Bellman-Ford
             - Classless
             - multicast update
             - VLSM
@@ -982,11 +1007,13 @@
             - Classful
     - Link-state 全てのルータが同じ情報を持つ
         - OSPF
+            - Dijkstra
             - Classful
         - IS-IS
             - Classful
     - Hybrid
         - EIGRP
+            - DUAL
             - Classless
 - EGP (AS間で使用されるプロトコル)
     - Distance-vector
