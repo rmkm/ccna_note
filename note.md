@@ -1,4 +1,4 @@
-# Basic setting 
+# 1. Basic setting 
 - Notes
 ```
     username [username] secret [password] → clear text
@@ -42,7 +42,7 @@
     # show ip ssh
 ```
 
-# Switch
+# 2. Switch
 
 ## Basic
 
@@ -224,11 +224,19 @@
 ```
 
 ## EtherChannel
+- 複数の物理リンクを束ねて1つの論理リンクにする
+- PAgP desirable - desirable | auto
+    - シスコ独自プロトコル
+- LACP active - active | passive
+    - IEEE802.3ad
+- EtherChannelを形成するマシンのどちらかは desirable | active にする必要がある
+
 ```
     (config) interface fa 0/1
-    (config-if) channel-group 1 mode on
+    (config-if) channel-group 1 mode [ auto | desirable | on | active | passive ]
     (config) interface fa 0/2
-    (config-if) channel-group 1 mode on
+    (config-if) channel-group 1 mode [ auto | desirable | on | active | passive ]
+! mode on が多い
 
     # show spanning-tree
     # show etherchannel summary
@@ -266,14 +274,9 @@
     # show vtp status
 ```
 
-# Router
+# 3. Router
 
 ## Basic
-
-- Enable routing IPv6 packets
-```
-    (config) ipv6 unicast-routing
-```
 
 - Static IP address
 ```
@@ -288,11 +291,11 @@
     # show ipv6 interface gigabitEthernet 0/0
 ```
 
-- IPv6 DHCP and SLAAC
-```
-    (config) ipv6 address dhcp
-    (config) ipv6 address autoconfig
-```
+#- IPv6 DHCP and SLAAC
+#```
+#    (config) ipv6 address dhcp
+#    (config) ipv6 address autoconfig
+#```
 
 - Serial DCE DTE(no clock) DB60
     - DTE -> (シリアルケーブル) -> DCE -> キャリア網 -> DCE -> DTE
@@ -463,7 +466,7 @@
 - Single area and Multi area
     - Single area 
 
-        Only area 0
+        area 0 のみで構成
 
     - Multi area
 
@@ -772,10 +775,141 @@
         - IP Precedence
             - IPv4ヘッダ内のType of Service (ToS) フィールド先頭3bit
         - Defferentiated Services Code Point (DSCP)
-            - Per Hop Behavior (PHB)
+            - Per Hop Behavior (PHB) DSCP値により処理を決めること
             - IPv4ヘッダ内のType of Service (ToS) フィールド先頭6bit
+3. Queueing キューにパケットを格納すること
+4. Scheduling どのキューにあるパケットから送出していくのか
 
-# Note
+- Shaping
+
+    定義した通信速度を超過した場合、それ以上のパケットはバッファに格納しておいて通信速度の超過が落ち着いてきてからトラフィックを送信していく方式
+
+
+- Policing
+
+    定義した通信速度を超過した場合、それ以上のパケットを破棄する
+
+## Inter-VLAN routing
+
+- Router
+    - Router On A Stick (ROAS)
+    
+        1つの物理インタフェースに複数の論理インタフェースを作成し，それぞれにVLANを割り当てる(トランクリンク)
+
+```
+! 1. Create sub interface
+    ! subinterface-number = 1
+    (config) interface FastEthernet0/0.1
+! 2. カプセル化タイプとVLAN IDの指定
+    ! VLAN ID = 10
+    (config-subif) encapsulation dot1q 10 
+! 3. Configure IP address
+    (config-subif) ip address 192.168.10.254 255.255.255.0
+! 論理インタフェースをn個作成する場合，以上をn回行う
+```
+
+- Switch
+    - Switch Virtual Interface (SVI) 
+        - VLANごとに論理インタフェースを作成する
+        - 1つの物理インタフェースで複数のVLANトラフィックを転送(トランスポート)
+
+```
+! IPルーティングの有効化
+    (config) ip routing
+! SVIの作成
+    (config) interface vlan 10
+    (config-if) ip address 192.168.10.254 255.255.255.0
+    (config-if) no shutdown
+
+    # show vlan
+    # show interfaces status
+    # show interface brief
+    # show ip route
+```
+
+- Switch
+    - Routed port
+        - 1つの物理インタフェースで1つのVLANトラフィックのみ転送
+        - L3 EtherChannel を作成するのに使用する
+```
+! IPルーティングの有効化
+    (config) ip routing
+! ルーテッドポートの作成 L3ポートになる
+    (config) interface gigabitEthernet 0/1
+    (config-if) no switchport 
+    (config-if) ip address 192.168.10.254 255.255.255.0
+    (config-if) no shutdown
+
+    # show ip interface brief
+    # show ip route
+```
+
+- L3 EtherChannelの設定
+```
+　  (config)# ip routing
+! ルーテッドポートの作成
+! 複数の物理インタフェースで設定する
+　  (config)# interface interface-id
+　  (config-if) no switchport
+    ! group-number = 10
+　  (config-if) channel-group 10 mode [ auto | desirable | on | active | passive ]
+
+    ! port-channel = 10
+　  (config) interface port-channel 10 
+　  (config-if) no switchport
+　  (config-if) ip address address mask
+　  (config-if) no shutdown
+```
+
+## First Hop Redundancy Protocol (FHRP)
+
+    デフォルトゲートウェイを冗長化させる技術
+
+| Acronym | Full Name | Origin | Redundancy Approach | Load Balancing |
+| ---- | ---- | ---- | ---- | ---- |
+| HSRP | Hot Standby Router Protocol | Cisco | Active/standby | Per subnet |
+| VRRP | Virtual Router Redundancy Protocol | RFC 5798 | Active/standby | Per subnet |
+| GLBP | Gateway Load Balancing Protocol | Ciso | Active/active | Per host |
+
+```
+    ! R1
+    (config-if) standby 1 ip 10.1.1.1
+    ! R2
+    (config-if) standby 1 ip 10.1.1.1
+
+    # show standby brief
+    # show standby
+        ! shows standby version
+```
+
+## IPv6
+
+- Prefix
+    - Link-local: FE80
+    - Unique-local: FD (like Private in IPv4)
+    - Global unicast: 2,3 (like Public in IPv4)
+    - multicast: FF
+
+- Enable routing IPv6 packets
+```
+    (config) ipv6 unicast-routing
+```
+
+- IPv6 addressing
+    1. Stateless Address Auto Configuration (SLAAC)
+        - Prefix is autoconfiguration
+        - Interface ID is EUI-64
+        - ホストはルータにRSを送信し，ルータはRAをホストに送信する
+        - DHCPv6サーバが要らない
+    1. Stateless DHCPv6
+        - SLAACで求めたIPv6アドレスでは足りない情報をDHCPv6サーバから取得
+        - DNSサーバの情報を入手
+    1. Statefull DHCPv6
+        - DHCPv6 provide prefix and interface ID
+        - DNSサーバの情報を入手
+        - IPv4と同じ動作
+
+# 4. Note
 
 ## IPv6
 - Neighbor Discovery Protocol - (NDP)
@@ -783,11 +917,6 @@
     - Neighbor Advertisement - (NA) : ARP return
     - Router Solicitation - (RS) : Router info request, no MAC addr
     - Router Advertisement - (RA) : Router info return, no MAC addr
-- Prefix
-    - link-local: FE80
-    - unique-local: FD
-    - global unicast: 2,3
-    - multicast: FF
 - SLAAC
     - Autoconfigration
 
@@ -862,9 +991,6 @@
 
 ## STP
 
-- EtherChannel
-    - PAgP desirable - desirable | auto
-    - LACP active - active | passive
 - PortFast
     - パソコンとつなぐポートはフォワーディング
 - Bridge Protocol Data unit - (BPDU)
