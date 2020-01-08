@@ -314,12 +314,6 @@
     # show ipv6 interface gigabitEthernet 0/0
 ```
 
-#- IPv6 DHCP and SLAAC
-#```
-#    (config) ipv6 address dhcp
-#    (config) ipv6 address autoconfig
-#```
-
 - Serial DCE DTE(no clock) DB60
     - DTE -> (シリアルケーブル) -> DCE -> キャリア網 -> DCE -> DTE
     - DCEからDTEにクロック供給
@@ -405,17 +399,27 @@
     # show ip access-lists (only IPv4)
     # show ip interface gigabitEthernet 0/0
 ```
+
 - Deleting
 ```
-    (config) no access-list101 | Delete everything
+! Delete everything
+    (config) no access-list101
         or
     (config) ip access-list [ "standard" | "extended" ] [ number | name ]
     (config-ext-nacl) no 20
 ```
+
 - telnet, sshでログインできる機器の制御
 ```
     Cisco(config)# line vty 0 15
     Cisco(config-line)# access-class 1 in
+```
+
+- IPv6 ACL
+    - IPv4 ACLs can be identified by number or name, while IPv6 ACLs user names only
+    - 各ACLの最後にNSとNAを許可する暗黙のpermit文がある
+```
+    (config) ipv6 access-list [acl-name]
 ```
 
 ## NAT
@@ -480,6 +484,15 @@
 4. トポロジマップ作成
 5. Shortest Path First (SPF) アルゴリズムを用いてSPFツリーを作成
 6. 最小コストのパスがルーティングテーブルに追加される
+
+- Neighborの条件
+    - Interfaceがup/up
+    - Interfaceが同じサブネット
+    - ACLがOSPFのメッセージをフィルタしていない
+    - Authenticationに成功する
+    - Hello timerとDead timerが一致
+    - Router IDがユニーク
+        - process IDは同じでなくてよい
 
 - Area
 
@@ -546,6 +559,27 @@
     (config-router) no passive-interface vlan 10 
 ```
 
+- OSPFv3 (IPv6対応)
+    - OSPFv2とLSAの構造が違う
+    - Neighborになるために同じサブネットである必要はない 
+```
+    (config) ipv6 router ospf [process-id]
+        ! (config) router ospf [process-id]
+    (config-router) router-id 1.1.1.1
+        ! 共通
+
+    (config) interface GigabitEthernet0/0
+    (config-if) ipv6 ospf [process-id] area [area-number]
+        ! (config-if) ip ospf 1 area 23
+
+    # show ipv6 protocols
+    # show ipv6 ospf
+    # show ipv6 ospf interface brief
+    # show ipv6 ospf interface GigabitEthernet 0/0
+    # show ipv6 ospf neighbor
+    # show ipv6 ospf neighbor serial0/0
+    # show ipv6 ospf database
+```
 ## EIGRP
 - Diffusing Update Algorithm (DUAL)
 
@@ -555,13 +589,25 @@
     - Advertised (Reported) Distance (AD) : Neighbor to Dst
     - Feasible Distance (FD) : Localhost to Dst
 
+- Neighborの条件
+    - Interfaceがup/up
+    - Interfaceが同じサブネット
+    - ACLがOSPFのメッセージをフィルタしていない
+    - Authenticationに成功する
+    - 同じASN
+    - K value (メトリックの計算に使用される)が一致
+        - Hello timerとDead timerが一致する必要はない
+        - Router IDがユニークである必要はない
+        - process IDは同じでなくてよい
+
 - Basic setting
 ```
-    (config) router eigrp [AS number]
 ! BGPのASとは違う
 ! Must be same as neighbor's AS number
-    (config-router) network 10.24.55.10 0.0.0.0
+    (config) router eigrp [AS number]
+! Enable EIGRP
 ! ワイルドカードでインターフェースを指定
+    (config-router) network 10.24.55.10 0.0.0.0
 
     # show running-config
     # show ip protocols
@@ -593,8 +639,25 @@
 ! Disable
     (config-router) no auto-summary 
 
+! Change Hello and hold timers
+    (config-if) ip hello-interval eigrp [asn-time]
+    (config-if) ip hold-time eigrp [asn-time]
+
 ! Debug
     # debug eigrp fsm
+```
+
+- EIGRP for IPv6
+    - Neighborになるために同じサブネットである必要はない 
+    - interface bandwidth コマンドは共通
+```
+! Create process
+    (config) ipv6 router eigrp [as-number]
+        ! (config) router eigrp [as-number]
+
+! Enable EIGRP
+    (config-if) ipv6 eigrp [as-number]
+        (config-router) network 10.24.55.10 0.0.0.0
 ```
 
 ## BGP
@@ -938,6 +1001,48 @@
         - DNSサーバの情報を入手
         - IPv4と同じ動作
 
+## Simple Network Management Protocol (SNMP) 
+
+    ルータ、スイッチ、サーバなどTCP/IPネットワークに接続された通信機器に対し、ネットワーク経由で監視、制御するためのアプリケーション層プロトコル
+
+- SNMP Manager
+    - 管理する側
+    - Windows server, Linux server
+    - UDP port 162
+- SNMP Agent
+    - 管理される側
+    - Router, Switch, Server
+    - UDP port 161
+
+- Management Information Base (MIB)
+    - SNMPエージェントが持っている機器情報の集合体のこと
+    - OID (オブジェクトID)
+    - Remote Monitoring MIB (RMON)
+
+- SNMP Community
+    - SNMPで管理するネットワークシステムの範囲のこと
+    - MIBへのアクセス権限
+        - Read Only (RO)
+        - Read Write (RW)
+        - Read-write-all
+            - コミュニティを含めてMIB情報の読み書きが可能
+
+| SNMP version | RFC | What |
+| ---- | ---- | ---- |
+| SNMPv1 | RFC 1157 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認なし。|
+| SNMPv2c | RFC 1901 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認あり。 |
+| SNMPv3 | RFC 2273-2275 | ユーザ単位の暗号化されたパスワード認証。SNMPトラップにおける再送確認あり。 |
+
+```
+! Enable SNMP agent
+    (config) snmp-server community [community-string] RO [ipv6 acl-name] [acl-name]
+! Option
+    (config) snmp-server location [text-describing-location]
+    ! e.g., (config) snmp-server location Atlanta
+    (config) snmp-server contact [contact-name]
+    ! 問題が起きた時の連絡先
+```
+
 # 4. Note
 
 ## IPv6
@@ -1013,7 +1118,7 @@
             - Classful
     - Hybrid
         - EIGRP
-            - DUAL
+            - Diffusing Update Algorithm (DUAL)
             - Classless
 - EGP (AS間で使用されるプロトコル)
     - Distance-vector
