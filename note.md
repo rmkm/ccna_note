@@ -1014,6 +1014,9 @@
     - Router, Switch, Server
     - UDP port 161
 
+- SNMP trap
+    - SNMP AgentからSNMP Managerに能動的に送信する通知のこと
+
 - Management Information Base (MIB)
     - SNMPエージェントが持っている機器情報の集合体のこと
     - OID (オブジェクトID)
@@ -1033,6 +1036,8 @@
 | SNMPv2c | RFC 1901 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認あり。 |
 | SNMPv3 | RFC 2273-2275 | ユーザ単位の暗号化されたパスワード認証。SNMPトラップにおける再送確認あり。 |
 
+- SNMPv2c
+    - SNMP AgentはSNMP Community の文字列でSNMP Managerを認証
 ```
 ! Enable SNMP agent
     (config) snmp-server community [community-string] RO [ipv6 acl-name] [acl-name]
@@ -1041,6 +1046,43 @@
     ! e.g., (config) snmp-server location Atlanta
     (config) snmp-server contact [contact-name]
     ! 問題が起きた時の連絡先
+
+    ! statusが分かる
+    # show snmp
+    ! 設定が分かる
+    # show snmp community
+```
+
+- SNMPv3
+```
+    (config) snmp-server group [group-name] v3 [noauth|auth|priv] write [view-name]
+    (config) snmp-server user morishima [group-name] v3 auth md5 [password] priv AES [key-len] [key-value]
+    (config) snmp-server host [host] version 3 [noauth|auth|priv] morishima
+
+    ! noauth: Neither Auth nor Priv
+    ! auth: Auth but no Priv
+    ! priv: Auth and Priv
+
+    ! auth md5 [password] は snmp-server groupでauthかprivを選択したときに必要
+    ! priv AES [key-len] [key-value] は snmp-server groupでprivを選択したときに必要
+```
+
+## IP Service Level Agreement (IP SLA)
+- 機器間のRTTのthresholdを定め，SNMPトラップを送信することなどができる
+
+## Switched Port Analyzer (SPAN)
+
+    スイッチのミラーリング機能
+
+- SPAN dst portは１つのSPAN sessionにつき１つ
+- SPAN src portは１つのSPAN sessionにつき複数設定可能 
+- srcはinterfaceかVLANのどちらかのみ
+- SPAN dst portとSPAN src portは別々でなければならない
+- SPAN dst portはMAC learningしない
+
+```
+    (config) monitor session 1 source interface G1/0/11 - 12 rx
+    (config) monitor session 1 destination interface G1/0/21
 ```
 
 # 4. Note
