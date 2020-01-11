@@ -42,6 +42,12 @@
     # show ip ssh
 ```
 
+- Ping
+    - Standard ping
+    - Extended ping
+        - can send a specific number of packet
+        - can send packet from specified interface of IP address
+
 # 2. Switch
 
 ## Basic
@@ -267,6 +273,9 @@
 
 ## VLAN Trunking Protocol - (VTP)
 
+- Dynamic Trunking Protocol (DTP)
+    - デフォルトはDynamic Auto
+
 - Version
 ```
     (config) vtp version [ 1 | 2 | 3 ]
@@ -296,6 +305,11 @@
 
     # show vtp status
 ```
+
+## Attacks
+- Double tagging
+    - VLANタグを2つつける
+    - native VLAN IDを変えるとよい
 
 # 3. Router
 
@@ -334,6 +348,8 @@
 
     # show ipv6 route
 ```
+- Proxy ARP
+    - 本来の問い合わせ先に代わってARP応答する機能
 
 ## VLAN trunking
 
@@ -421,6 +437,9 @@
 ```
     (config) ipv6 access-list [acl-name]
 ```
+
+- note
+    - Port filters are applied as first
 
 ## NAT
 
@@ -661,6 +680,15 @@
 ```
 
 ## BGP
+
+- Neighborのステート
+    - Idle
+    - Connect
+    - Active
+    - OpenSent
+    - OpenConfirm
+    - Established
+
 - Basic
 ```
 ! only 1 BGP routing process per router
@@ -731,6 +759,7 @@
 ```
 - CHAP
     - secure
+    - md5
 ```
     (config) hostname R1
 ! username must match remote hostname
@@ -805,6 +834,13 @@
     (config-if) ip access-group inbound-from-Internet in 
 ```
 
+- IPsec over GRE tunnel verification
+```
+    # show crypto ipsec sa
+    # show crypto isakmp sa
+    (config) debug crypto isakmp
+```
+
 ### Dynamic Multipoint VPN (DMVPN)
 - ハブアンドスポーク
     - スポーク拠点間の通信のためにハブ拠点経由するので遅延が発生
@@ -836,6 +872,11 @@
     # show pppoe session
     # show interface dialer 2
     # show interface virtual-access 2 configuration
+
+! Debug
+    (config) debug ppp authentication
+    (config) debug ppp negotiation
+    (config) debug pppoe event
 ```
 
 ## QoS
@@ -1016,6 +1057,9 @@
 
 - SNMP trap
     - SNMP AgentからSNMP Managerに能動的に送信する通知のこと
+```
+    (config) snmp-server enable traps
+```
 
 - Management Information Base (MIB)
     - SNMPエージェントが持っている機器情報の集合体のこと
@@ -1242,12 +1286,14 @@
     - RADIUS
         - IETF standard
         - UDP 1812, 1813
+        - リモートサーバの認証
         - パスワード情報のみ暗号化
     - TACACS+
         - Cisco original
         - TCP 49
+        - リモートサーバの認証
         - パケット全体を暗号化
-        - ユーザごとに異なるCLI群の認証
+        - ユーザごとに異なるCLI群の認証 (access-level authorization)
 - DHCP Snooping on switch 嗅ぐ->盗み見る
     - Trusted: Switch, Router, DHCP Server
     - Untrusted: Client device such as PC
