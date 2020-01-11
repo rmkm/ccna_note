@@ -1085,7 +1085,56 @@
     (config) monitor session 1 destination interface G1/0/21
 ```
 
-# 4. Note
+# 4. Others
+
+## Cloud Computing
+
+| | Internet | Internet VPN | MPLS VPN | Ethernet WAN | Intercloud Exchange |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| Secure | No | Yes | Yes | Yes | Yes |
+| QoS | No | No | Yes | Yes | Yes |
+| Requires capacity planning | Yes | Yes | Yes | Yes | Yes |
+| Easier migration to new provider | Yes | Yes | No | No | Yes |
+| Can begin using punlic cloud quickly | Yes | Yes | No | No | No |
+
+## Software Defined Network (SDN) and Network Programmability
+
+- Management Plane
+    - Telnet, SSH, SNMP
+- Control Plane
+    - データ転送における経路の制御や計算を行う機能
+- Data Plane
+    - フレームの転送を行う機能
+
+### SDN Architecture
+
+- Application
+
+    |  
+    | Northbound API (Northbound Interface)  
+    |
+
+- Control
+
+    |  
+    | Southbound API (Southbound Interface)  
+    |
+
+- Infrastracture
+
+### Cisco Application Centric Infrastructure (Cisco ACI)
+- Ciscoが提供するSDN製品
+- Application Policy Infrastructure Controller (APIC)
+    - Cisco ACIにおけるデータセンター向けのSDNコントローラ
+- APIC Enterprise Module (APIC-EM)
+    - LAN/WAN向けのSDNコントローラ 
+    - ライセンス不要
+    - Path Trace App
+        - 送信デバイスから宛先デバイスに転送されるまでのパスを確認
+    - Path Trace ACL
+        - どのACLによりパケットが破棄されるのかをGUIで視覚的に確認
+
+# 5. Note
 
 ## IPv6
 - Neighbor Discovery Protocol - (NDP)
