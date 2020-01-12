@@ -136,8 +136,7 @@
 
 ## Spanning Tree Protocol (STP) and Rapid STP (RSTP)
 
-- IEEE 802.1D Spanning-Tree States
-
+#### IEEE 802.1D Spanning-Tree States
 | State | Forwards Data Frames? | Learns MACs Based on Received Frames? | Transitory or Stable State? |
 | ---- | ---- | ---- | ---- |
 | Blocking | No | No | Stable |
@@ -145,26 +144,26 @@
 | Learning | No | Yes | Transitory |
 | Forwarding | Yes | Yes | Stable |
 | Disabled | No | No | Stable |
+<br>
 
-- Port Roles in 802.1D STP
-
+#### Port Roles in 802.1D STP
 | Function | Port Role |
 | ---- | ---- |
 | Nonroot switch's best path to the root | Root port |
 | Switch port designated to forward onto a collision domain | Designated port |
 | Switch port that was not chonsen as RP nor DP | NonDesignated port |
+<br>
 
-- Port Roles in 802.1w RSTP
-
+#### Port Roles in 802.1w RSTP
 | Function | Port Role |
 | ---- | ---- |
 | Nonroot switch's best path to the root | Root port |
 | Switch port designated to forward onto a collision domain | Designated port |
 | Replaces the root port when the root port fails | Alternate port |
 | Replaces a designated port when a designated port fails | Backup port |
+<br>
 
-- Port States Compared: 802.1D STP and 802.1w RSTP
-
+#### Port States Compared: 802.1D STP and 802.1w RSTP
 | Function | 802.1D State | 802.1w State |
 | ---- | ---- | ---- |
 | Port is administratively disavled | Disabled | Discarding |
@@ -172,15 +171,16 @@
 | Interim state without MAC learning and without forwarding | Listening | Not used |
 | Interim state with MAC learning and without forwarding | Learning | Learning |
 | Stable state that allows MAC learning and forwarding of data frames | Forwaring | Forwarding |
+<br>
 
-- RSTP Port Types
-
+#### RSTP Port Types
 | Type | Current Duplex Status | Is Spanning-Tree PortFast Configured? |
 | ---- | ---- | ---- |
 | Point-to-point | Full | No |
 | Point-to-point edge | Full | Yes |
 | Shared | Half | No |
 | Shared edge | Half | Yes |
+<br>
 
 1. Root Bridge (RB) の選出
 1. Root Port (RP) の選出
@@ -527,14 +527,17 @@
 
         ルータの負荷軽減
 
-- OSPF ルータの種類
+<br>
 
+#### OSPF ルータの種類
 | ルータ | 説明 |
 | ---- | ---- |
 | 内部ルータ | 全てのインターフェースを同じエリアに接続しているルータ |
 | バックボーンルータ | 1つ以上のインターフェースをバックボーンエリアに接続しているルータ |
 | Area Border Router (ABR) | 異なるエリアを接続しているルータ |
 | AS Boundary Router (ASBR) | 1つ以上のインターフェースが外部ASのルータと接続しているルータ |
+
+<br>
 
 - Designated Router (DR) and Backup Designated Router (BDR)
     - DR 代表ルータ
@@ -859,8 +862,11 @@
     (config-if) mtu 1492
     (config-if) encapsulation ppp
 ! hostname given from ISP
+! hostname コマンドより優先される
     (config-if) ppp chap hostname Fred
 ! password given from ISP
+! username ... password ... コマンドの次に確認される
+! クライアント側が相手を認証する必要がないような場合に使用される
     (config-if) ppp chap password Barney 
     (config-if) dialer pool 1
 
@@ -886,13 +892,13 @@
     - Jitter
     - Loss
 
-- QoSのモデル
-
+#### QoSのモデル
 | モデル | 説明 |
 | ---- | ---- |
 | Integrated Services (IntServ) | アプリケーションの通信フローごとに帯域を予約する方式 |
 | Differentiated Services (DIffServ) | トラフィックを分類、マーキング（優先度付け）、キューイング（トラフィックのキューへの振り分け）、スケジューリング（キューの優先度に応じたパケットの送出）する |
 | Best Effort | FIFO |
+<br>
 
 1. Classification
 2. Marking
@@ -993,11 +999,24 @@
 
     デフォルトゲートウェイを冗長化させる技術
 
+#### Three FHRP Options
 | Acronym | Full Name | Origin | Redundancy Approach | Load Balancing |
 | ---- | ---- | ---- | ---- | ---- |
 | HSRP | Hot Standby Router Protocol | Cisco | Active/standby | Per subnet |
 | VRRP | Virtual Router Redundancy Protocol | RFC 5798 | Active/standby | Per subnet |
 | GLBP | Gateway Load Balancing Protocol | Ciso | Active/active | Per host |
+<br>
+
+#### HSRPv1 Versus HSRPv2
+| Feature | Version 1 | Version 2 |
+| ---- | ---- | ---- |
+| IPv6 support | No | Yes |
+| Smallest unit for Hello timer | Second | Millisecond |
+| Range of group numbers | 0-255 | 0-4095 |
+| MAC address used | 0000.0C07.ACxx | 0000.0C9F.Fxxx |
+| IPv4 multicast address used | 224.0.0.2 | 224.0.0.102 |
+| Does protocol use a unique identifier for each router ? | No | Yes |
+<br>
 
 ```
     ! R1
