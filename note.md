@@ -118,6 +118,7 @@
     - 両デバイスがaccessでないときにaccessになるのはdynamic autox2のみ
 ```
     (config-if) switchport mode trunk|dynamic auto|dynamic desirable
+        ! shows native vlan
         # show interfaces trunk
         # show interfaces switchport
     
@@ -310,6 +311,10 @@
 - Double tagging
     - VLANタグを2つつける
     - native VLAN IDを変えるとよい
+
+## Switch stacking
+- 1:N
+    - 1:N master redundancy allows each stack member to serve as a master, providing the highest reliability for forwarding. 
 
 # 3. Router
 
@@ -684,13 +689,16 @@
 
 ## BGP
 
-- Neighborのステート
-    - Idle
-    - Connect
-    - Active
-    - OpenSent
-    - OpenConfirm
-    - Established
+#### Neighborのステート
+| State | Description |
+| ---- | ---- |
+| Idle | Refuse connections |
+| Connect | TCP handshake complested. Wait for the connection to be completed. |
+| Active | Try another TCP handshake. Listen for and accept connection. |
+| OpenSent | An OPEN message was sent. Wait for an OPEN message. |
+| OpenConfirm | Received a reply to the OPEN message. Wait for a KEEPALIVE or NOTIFICATION message |
+| Established | UPDATE, NOTIFICATION, and KEEPALIVE message are exchanged with peers. |
+<br>
 
 - Basic
 ```
@@ -813,15 +821,21 @@
     # show ppp multilink
 ```
 
+### Metro Ethernet
+- Committed Information Rate (CIR)
+    - Minimum guranteed bandwidth
+
 ## VPN
 
 ### General Routing Encapsulation (GRE) tunnel
+- MTUとMaximum Segment Size (MSS)が減る
 - Basic
 ```
 　  (config) interface tunnel [number]
 　  (config-if) ip address 10.1.1.1 255.255.255.0
 　  (config-if) tunnel source 1.1.1.1
 ! remote router's ip address
+! tunnel destinationがundefinedの場合，インタフェースがdownになる
 　  (config-if) tunnel destination 2.2.2.2
 
     # show ip interface brief
@@ -911,8 +925,14 @@
         - Defferentiated Services Code Point (DSCP)
             - Per Hop Behavior (PHB) DSCP値により処理を決めること
             - IPv4ヘッダ内のType of Service (ToS) フィールド先頭6bit
+    - Others
+        - QoS Group
+        - Discard class
 3. Queueing キューにパケットを格納すること
 4. Scheduling どのキューにあるパケットから送出していくのか
+    - FIFO
+    - Class-based Waited Fair Queueing (CBWFQ)
+    - Priority Queueing (PQ)
 
 - Shaping
 
@@ -1018,6 +1038,10 @@
 | Does protocol use a unique identifier for each router ? | No | Yes |
 <br>
 
+- Active router will be chosen by
+    - Highest IP address
+    - Configured priority
+
 ```
     ! R1
     (config-if) standby 1 ip 10.1.1.1
@@ -1119,8 +1143,11 @@
 - SNMPv3
 ```
     (config) snmp-server group [group-name] v3 [noauth|auth|priv] write [view-name]
+! userをgroupに参加させる
     (config) snmp-server user morishima [group-name] v3 auth md5 [password] priv AES [key-len] [key-value]
-    (config) snmp-server host [host] version 3 [noauth|auth|priv] morishima
+! トラップの設定
+! hostはSNMPマネージャ
+    (config) snmp-server host [host] [informs|traps(default)] version 3 [noauth|auth|priv] md5 [password] 
 
     ! noauth: Neither Auth nor Priv
     ! auth: Auth but no Priv
@@ -1132,19 +1159,27 @@
 
 ## IP Service Level Agreement (IP SLA)
 - 機器間のRTTのthresholdを定め，SNMPトラップを送信することなどができる
+- can use to dynamically identify a connectivity problem between a Cisco device and a designated endpoint
 
 ## Switched Port Analyzer (SPAN)
 
     スイッチのミラーリング機能
 
-- SPAN dst portは１つのSPAN sessionにつき１つ
-- SPAN src portは１つのSPAN sessionにつき複数設定可能 
-- srcはinterfaceかVLANのどちらかのみ
-- SPAN dst portとSPAN src portは別々でなければならない
-- SPAN dst portはMAC learningしない
+- 注意点
+    - SPAN dst portは１つのSPAN sessionにつき１つ
+    - SPAN src portは１つのSPAN sessionにつき複数設定可能 
+    - srcはinterfaceかVLANのどちらかのみ
+    - SPAN dst portとSPAN src portは別々でなければならない
+    - SPAN dst portはMAC learningしない
+
+- Local SPAN の影響
+    - It doubles the load on the forwarding engine
+    - It prevents span destination from using port security
+    - It double internal switch traffic
 
 ```
     (config) monitor session 1 source interface G1/0/11 - 12 rx
+    ! rx がない場合，両方向
     (config) monitor session 1 destination interface G1/0/21
 ```
 
@@ -1159,6 +1194,10 @@
 | Requires capacity planning | Yes | Yes | Yes | Yes | Yes |
 | Easier migration to new provider | Yes | Yes | No | No | Yes |
 | Can begin using punlic cloud quickly | Yes | Yes | No | No | No |
+
+- MPLS for WAN
+    - Supports CoS
+    - Provides VPN
 
 ## Software Defined Network (SDN) and Network Programmability
 
@@ -1192,10 +1231,14 @@
 - APIC Enterprise Module (APIC-EM)
     - LAN/WAN向けのSDNコントローラ 
     - ライセンス不要
+    - 設定にはSrc address と Dest address が必要
     - Path Trace App
         - 送信デバイスから宛先デバイスに転送されるまでのパスを確認
     - Path Trace ACL
         - どのACLによりパケットが破棄されるのかをGUIで視覚的に確認
+        - Only matching access control entries (ACEs) are reported.
+        - If you leave out the protocol, source port, or destination port when defining a path trace, the results include ACE matches for all possible values for these fields.
+        - If no matching ACEs exists in the ACL, the flow is reported to be implicitly denied
 
 # 5. Note
 
