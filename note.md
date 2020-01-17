@@ -488,11 +488,22 @@
             ```
 
     1. ## OSPF
+        1. ### 用語
+            - Area
+                - LSAを交換する範囲を示す論理グループ，もしくは同じLSDBを持つOSPFルータの論理グループ．
+                - ASより小さな範囲
+            - Designated Router (DR)
+                - 代表ルータ
+                - プライオリティが最も大きいルータ
+                - 同じ場合、ルータIDが大きいルータ
+            - Backup Designated Router (BDR)
+            - DROTHER
+            - スタブルータ
+                - 末端のルータ
+
         1. ### OSPFの流れ
             1. Helloパケットによるネイバー関係の確立
-
-                Init -> 2-Way -> Full
-
+                - Init -> 2-Way -> Full
             2. Link State Advertisement (LSA) 交換
             3. Link State Database (LSDB) 作成
             4. トポロジマップ作成
@@ -508,9 +519,6 @@
             - Router IDがユニーク
                 - process IDは同じでなくてよい
 
-        1. ### Area
-            LSAを交換する範囲を示す論理グループ，もしくは同じLSDBを持つOSPFルータの論理グループ
-
         1. ### Single area and Multi area
             - Single area 
                 - area 0 のみで構成
@@ -525,13 +533,6 @@
             | Area Border Router (ABR) | 異なるエリアを接続しているルータ |
             | AS Boundary Router (ASBR) | 1つ以上のインターフェースが外部ASのルータと接続しているルータ |
             <br>
-
-        1. ### Designated Router (DR) and Backup Designated Router (BDR)
-            - DR 代表ルータ
-                - プライオリティが最も大きいルータ
-                - 同じ場合、ルータIDが大きいルータ
-            - BDR
-            - DROTHER
 
         1. ### Note
             - Delayはパス選択に影響しない
@@ -590,606 +591,613 @@
             # show ipv6 ospf neighbor serial0/0
             # show ipv6 ospf database
             ```
+
     1. ## EIGRP
-    - Diffusing Update Algorithm (DUAL)
+        1. ### 用語
+            - Successor Route (S) : プライマリルート, 最小のFD
+            - Feasible Successor Route (FS) : バックアップルート, SのFDより小さなADのルート
+            - Advertised (Reported) Distance (AD) : Neighbor to Dst
+            - Feasible Distance (FD) : Localhost to Dst
+            - Diffusing Update Algorithm (DUAL)
+            - スタブルータ: 末端のルータ
 
-    - 用語
-        - Successor Route (S) : プライマリルート, 最小のFD
-        - Feasible Successor Route (FS) : バックアップルート, SのFDより小さなADのルート
-        - Advertised (Reported) Distance (AD) : Neighbor to Dst
-        - Feasible Distance (FD) : Localhost to Dst
+        1. ### Neighborの条件
+            - Interfaceがup/up
+            - Interfaceが同じサブネット
+            - ACLがOSPFのメッセージをフィルタしていない
+            - Authenticationに成功する
+            - 同じASN
+            - K value (メトリックの計算に使用される)が一致
+                - Hello timerとDead timerが一致する必要はない
+                - Router IDがユニークである必要はない
+                - process IDは同じでなくてよい
 
-    - Neighborの条件
-        - Interfaceがup/up
-        - Interfaceが同じサブネット
-        - ACLがOSPFのメッセージをフィルタしていない
-        - Authenticationに成功する
-        - 同じASN
-        - K value (メトリックの計算に使用される)が一致
-            - Hello timerとDead timerが一致する必要はない
-            - Router IDがユニークである必要はない
-            - process IDは同じでなくてよい
+        1. ### K value
+            - K1 Bandwidth
+            - K2 Load 
+            - K3 Delay 
+            - K4 Reliability 
+            - K5 MTU 
 
-    - Basic setting
-    ```
-    ! BGPのASとは違う
-    ! Must be same as neighbor's AS number
-        (config) router eigrp [AS number]
-    ! Enable EIGRP
-    ! ワイルドカードでインターフェースを指定
-        (config-router) network 10.24.55.10 0.0.0.0
-
-        # show running-config
-        # show ip protocols
-        # show ip eigrp interfaces
-
-        # show ip eigrp neighbors 
-        # show ip eigrp topology 
-            ! What you see
-            via 192.168.1.2 (FD/AD)
-    ```
-    - Optional
-    ```
-    ! Bandwidth
-    ! メトリック計算用
-        (config-if) bandwidth [kbps]
-
-    ! Load balancing
-    ! ルーティングテーブルに格納する同じメトリック値のルート数
-        (config-router) maximum-paths [value = 4]
-
-    ! Unequal-cost load balancing
-    ! 最小メトリックの2倍の範囲までルーティングテーブルに格納
-    ! S,FSのみ
-        (config-router) variance 2
-
-    ! Auto-summary
-    ! Enable
-        (config-router) auto-summary 
-    ! Disable
-        (config-router) no auto-summary 
-
-    ! Change Hello and hold timers
-        (config-if) ip hello-interval eigrp [asn-time]
-        (config-if) ip hold-time eigrp [asn-time]
-
-    ! Debug
-        # debug eigrp fsm
-    ```
-
-    - EIGRP for IPv6 (EIGRPv6)
-        - Neighborになるために同じサブネットである必要はない 
-        - interface bandwidth コマンドは共通
-    ```
-    ! Create process
-        (config) ipv6 router eigrp [as-number]
-            ! (config) router eigrp [as-number]
-
-    ! Enable EIGRP
-        (config-if) ipv6 eigrp [as-number]
+        1. ### Basic setting
+            ```
+            !! BGPのASとは違う
+            !! Must be same as neighbor's AS number
+            (config) router eigrp [AS number]
+            !! Enable EIGRP
+            !! ワイルドカードでインターフェースを指定
             (config-router) network 10.24.55.10 0.0.0.0
-    ```
 
-    ## BGP
+            # show running-config
+            # show ip protocols
+            # show ip eigrp interfaces
 
-    #### Neighborのステート
-    | State | Description |
-    | ---- | ---- |
-    | Idle | Refuse connections |
-    | Connect | TCP handshake complested. Wait for the connection to be completed. |
-    | Active | Try another TCP handshake. Listen for and accept connection. |
-    | OpenSent | An OPEN message was sent. Wait for an OPEN message. |
-    | OpenConfirm | Received a reply to the OPEN message. Wait for a KEEPALIVE or NOTIFICATION message |
-    | Established | UPDATE, NOTIFICATION, and KEEPALIVE message are exchanged with peers. |
-    <br>
+            # show ip eigrp neighbors 
+            # show ip eigrp topology 
+            !! What you see
+            !! via 192.168.1.2 (FD/AD)
+            ```
+        1. ### Optional setting
+            ```
+            !! Bandwidth
+            !! メトリック計算用
+            (config-if) bandwidth [kbps]
 
-    - Basic
-    ```
-    ! only 1 BGP routing process per router
-        (config) router bgp [AS number]
-    ! must configure neighbor manually
-        (config-router) neighbor [ip address] remote-as [AS number]
-    ! 自分のAS内のルート情報をBGPルートとしてアドバタイズ
-        (config-router) network [ip address] mask [mask]
+            !! Load balancing
+            !! ルーティングテーブルに格納する同じメトリック値のルート数
+            (config-router) maximum-paths [value = 4]
 
-        # show ip bgp summary
-        # show ip bgp
-        # show tcp brief
-    ```
-    - Option
-    ```
-    ! Disable neighbor
-        (config-router) neighbor 10.24.55.10 shutdown
-    ! Enable the exchange of information
-        (config-router) neighbor [ip-address] activate
-    ```
+            !! Unequal-cost load balancing
+            !! 最小メトリックの2倍の範囲までルーティングテーブルに格納
+            !! S,FSのみ
+            (config-router) variance 2
 
-    ## WAN
+            !! Auto-summary
+            !! Enable
+            (config-router) auto-summary 
+            !! Disable
+            (config-router) no auto-summary 
 
-    - DTE -> DCE -> キャリア網 -> DCE -> DTE
+            !! Change Hello and hold timers
+            (config-if) ip hello-interval eigrp [asn-time]
+            (config-if) ip hold-time eigrp [asn-time]
 
-    | WAN device | 説明 |
-    | ---- | ---- |
-    | DTE | Data Terminal Equipment. ルータやパソコン |
-    | DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム(アナログ)、CSU/DSU(デジタル)、ONUが該当。|
+            !! Debug
+            # debug eigrp fsm
+            ```
 
-    - HDLC
-    - PPP
-        - 認証
-            - PAP
-                - Clear text
-            - CHAP
-                - Use hash
-                - 両方のルータでパスワードを設定しておく
-        - 圧縮
-        - マルチリンク
-        - エラー制御
+        1. ### EIGRP for IPv6 (EIGRPv6)
+            - Neighborになるために同じサブネットである必要はない 
+            - interface bandwidth コマンドは共通
+            ```
+            !! Create process
+            (config) ipv6 router eigrp [as-number]
+            !! (config) router eigrp [as-number]
 
-    - Customer Edge (CE)
-    - Provider Edge (PE)
+            !! Enable EIGRP
+            (config-if) ipv6 eigrp [as-number]
+            (config-router) network 10.24.55.10 0.0.0.0
+            ```
 
-    ### High-Level Data Link Control (HDLC)
-    - keep-alive should be equal on both side
-    - Basic
-    ```
-        (config) interface s0/0
-        (config-if) ip address 192.168.1.1 mask 255.255.255.0
-        (config-if) encapsulation hdlc
+    1. ## BGP
 
-    ! optional 
-    ! if the serial link is a back-to-back serial link
-    ! Use this command on DCE
-        (config-if) clock rate 128000 (bps)
-        # show controllers serial0/0
+        1. ### Neighborのステート
+            | State | Description |
+            | ---- | ---- |
+            | Idle | Refuse connections |
+            | Connect | TCP handshake complested. Wait for the connection to be completed. |
+            | Active | Try another TCP handshake. Listen for and accept connection. |
+            | OpenSent | An OPEN message was sent. Wait for an OPEN message. |
+            | OpenConfirm | Received a reply to the OPEN message. Wait for a KEEPALIVE or NOTIFICATION message |
+            | Established | UPDATE, NOTIFICATION, and KEEPALIVE message are exchanged with peers. |
+            <br>
 
-    ! optional 
-        (config-if) bandwidth 1544 (kbps)
-    ```
+        1. ### Basic
+            ```
+            !! only 1 BGP routing process per router
+            (config) router bgp [AS number]
+            !! must configure neighbor manually
+            (config-router) neighbor [ip address] remote-as [AS number]
+            !! 自分のAS内のルート情報をBGPルートとしてアドバタイズ
+            (config-router) network [ip address] mask [mask]
 
-    ### Point-to-Point Protocol (PPP)
-    - Basic
-    ```
-        (config) interface s0/0
-        (config-if) ip address 192.168.1.1 mask 255.255.255.0
-        (config-if) encapsulation ppp 
-    ```
-    - CHAP
-        - secure
-        - md5
-    ```
-        (config) hostname R1
-    ! username must match remote hostname
-    ! password must match remote router's configuration
-        (config) username R2 password morishima 
-        (config) interface serial0/0
-        (config-if) ip address 192.168.1.1 255.255.255.0
-        (config-if) encapsulation ppp
-        (config-if) ppp authentication chap
+            # show ip bgp summary
+            # show ip bgp
+            # show tcp brief
+            ```
+        1. ### Option
+            ```
+            !! Disable neighbor
+            (config-router) neighbor 10.24.55.10 shutdown
+            !! Enable the exchange of information
+            (config-router) neighbor [ip-address] activate
+            ```
 
-        # show ppp all
-    ```
-    - PAP
-        - clear text password
-    ```
-        (config) hostname R1
-    ! username must match remote hostname
-    ! password must match remote router's "ppp pap ... " command 
-        (config) username R2 password pass2 
-        (config) interface serial0/0
-        (config-if) ip address 192.168.1.1 255.255.255.0
-        (config-if) encapsulation ppp
-        (config-if) ppp authentication pap
-        (config-if) ppp pap sent-username R1 pass1
-    ```
-    - Multilink PPP (MLPPP)
-    ```
-    ! Create multilink interface
-        (config) interface multilink [bundle-number]
-        (config-if) encapsulation ppp
-        (config-if) ppp multilink
-        (config-if) ip address 192.168.1.10 255.255.255.0
-    ! group-number must match budle-number and remote as well
-        (config-if) ppp multilink group [group-number] 
-    ! if use CHAP
-        (config-if) ppp authentication chap
+    1. ## WAN
+        1. ### Basic information
+            - DTE -> DCE -> キャリア網 -> DCE -> DTE
 
-    ! Assign physical interface
-    ! multilink interfaceと違うのはip addressの設定だけ
-        (config) interface serial0/0
-        (config-if) encapsulation ppp
-        (config-if) ppp multilink
-        (config-if) no ip address
-        (config-if) ppp multilink group [group-number]
+            | WAN device | 説明 |
+            | ---- | ---- |
+            | DTE | Data Terminal Equipment. ルータやパソコン |
+            | DCE | Data Circuit-Terminating Equipment. DTEから送られる信号をDCEが接続している網に適した信号に変換して送信。WANの網から送られてくる信号をDTEに適した信号に変換し送信。WANがシリアル回線の場合、DCEはクロック信号を送信する。DCEはモデム(アナログ)、CSU/DSU(デジタル)、ONUが該当。|
 
-        # show ip route
-        # show interfaces multilink 1
-        # show ppp multilink
-    ```
+            - HDLC
+            - PPP
+                - 認証
+                    - PAP
+                        - Clear text
+                    - CHAP
+                        - Use hash
+                        - 両方のルータでパスワードを設定しておく
+                - 圧縮
+                - マルチリンク
+                - エラー制御
 
-    ### Metro Ethernet
-    - Committed Information Rate (CIR)
-        - Minimum guranteed bandwidth
+            - Customer Edge (CE)
+            - Provider Edge (PE)
 
-    ## VPN
+        1. ### High-Level Data Link Control (HDLC)
+            - keep-alive should be equal on both side
+            - Basic setting
+            ```
+            (config) interface s0/0
+            (config-if) ip address 192.168.1.1 mask 255.255.255.0
+            (config-if) encapsulation hdlc
 
-    ### IPsec
-    - Cisco Adaptive Security Appliance
-        - IPsec VPNを構築することができるファイアウォール
+            !! optional 
+            !! if the serial link is a back-to-back serial link
+            !! Use this command on DCE
+            (config-if) clock rate 128000 (bps)
+            # show controllers serial0/0
 
-    ### General Routing Encapsulation (GRE) tunnel
-    - MTUとMaximum Segment Size (MSS)が減る
-    - Basic
-    ```
-    　  (config) interface tunnel [number]
-    　  (config-if) ip address 10.1.1.1 255.255.255.0
-    　  (config-if) tunnel source 1.1.1.1
-    ! remote router's ip address
-    ! tunnel destinationがundefinedの場合，インタフェースがdownになる
-    　  (config-if) tunnel destination 2.2.2.2
+            !! optional 
+            (config-if) bandwidth 1544 (kbps)
+            ```
 
-        # show ip interface brief
-        # show interfaces tunnel0
-    ```
-    - ACL that permit GRE
-    ```
-        (config) ip access-list extended inbound-from-Internet
-        (config-ext-nacl) permit tcp
-        (config-ext-nacl) permit udp
-        (config-ext-nacl) permit gre any any 
-        (config-ext-nacl) interface s0/0/0
-        (config-if) ip access-group inbound-from-Internet in 
-    ```
+        1. ### Point-to-Point Protocol (PPP)
+            - Basic setting
+            ```
+            (config) interface s0/0
+            (config-if) ip address 192.168.1.1 mask 255.255.255.0
+            (config-if) encapsulation ppp 
+            ```
+            1. #### CHAP
+                - secure
+                - md5
+                ```
+                (config) hostname R1
+                !! username must match remote hostname
+                !! password must match remote router's configuration
+                (config) username R2 password morishima 
+                (config) interface serial0/0
+                (config-if) ip address 192.168.1.1 255.255.255.0
+                (config-if) encapsulation ppp
+                (config-if) ppp authentication chap
 
-    - IPsec over GRE tunnel verification
-    ```
-        # show crypto ipsec sa
-        # show crypto isakmp sa
-        (config) debug crypto isakmp
-    ```
+                # show ppp all
+                ```
+            1. #### PAP
+                - clear text password
+                ```
+                (config) hostname R1
+                !! username must match remote hostname
+                !! password must match remote router's "ppp pap ... " command 
+                (config) username R2 password pass2 
+                (config) interface serial0/0
+                (config-if) ip address 192.168.1.1 255.255.255.0
+                (config-if) encapsulation ppp
+                (config-if) ppp authentication pap
+                (config-if) ppp pap sent-username R1 pass1
+                ```
+        1. ### Multilink PPP (MLPPP)
+            ```
+            !! Create multilink interface
+            (config) interface multilink [bundle-number]
+            (config-if) encapsulation ppp
+            (config-if) ppp multilink
+            (config-if) ip address 192.168.1.10 255.255.255.0
+            !! group-number must match budle-number and remote as well
+            (config-if) ppp multilink group [group-number] 
+            !! if use CHAP
+            (config-if) ppp authentication chap
 
-    ### Dynamic Multipoint VPN (DMVPN)
-    - ハブアンドスポーク
-        - スポーク拠点間の通信のためにハブ拠点経由するので遅延が発生
-    - フルメッシュ
-        - コンフィグ量が多くなり管理上の手間が発生
-    - DMVPNのソリューション
-        - オンデマンドにスポーク間VPNを構築
-        - Next Hop Resolution Protocol (NHRP) でスポークはハブに自身のIPアドレスを登録
-        - NHRPでハブは他のスポークにそのIPアドレスを通知
+            !! Assign physical interface
+            !! multilink interfaceと違うのはip addressの設定だけ
+            (config) interface serial0/0
+            (config-if) encapsulation ppp
+            (config-if) ppp multilink
+            (config-if) no ip address
+            (config-if) ppp multilink group [group-number]
 
-    ### PPP over Ethernet (PPPoE)
-    - Basic
-    ```
-        (config) interface dialer 2
-        (config-if) ip address negotiated
-        (config-if) mtu 1492
-        (config-if) encapsulation ppp
-    ! hostname given from ISP
-    ! hostname コマンドより優先される
-        (config-if) ppp chap hostname Fred
-    ! password given from ISP
-    ! username ... password ... コマンドの次に確認される
-    ! クライアント側が相手を認証する必要がないような場合に使用される
-        (config-if) ppp chap password Barney 
-        (config-if) dialer pool 1
+            # show ip route
+            # show interfaces multilink 1
+            # show ppp multilink
+            ```
 
-        (config) interface GigabitEthernet 0/0
-        (config-if) no ip address 
-        (config-if) pppoe enable
-        (config-if) pppoe-client dial-pool-number 1
+        1. ### Metro Ethernet
+            - Committed Information Rate (CIR)
+                - Minimum guranteed bandwidth
 
-        # show pppoe session
-        # show interface dialer 2
-        # show interface virtual-access 2 configuration
+    1. ## VPN
 
-    ! Debug
-        (config) debug ppp authentication
-        (config) debug ppp negotiation
-        (config) debug pppoe event
-    ```
+        1. ### IPsec
+            - Cisco Adaptive Security Appliance
+                - IPsec VPNを構築することができるファイアウォール
 
-    ### Teredo
-    - IPv6 host-enabled tunneling technique that uses IPv4 UDP
-    - Can pass through existing IPv4 NAT gateways
+        1. ### General Routing Encapsulation (GRE) tunnel
+            - MTUとMaximum Segment Size (MSS)が減る
+            - Basic
+            ```
+            (config) interface tunnel [number]
+            (config-if) ip address 10.1.1.1 255.255.255.0
+            (config-if) tunnel source 1.1.1.1
+            !! remote router's ip address
+            !! tunnel destinationがundefinedの場合，インタフェースがdownになる
+            (config-if) tunnel destination 2.2.2.2
 
-    ## QoS
-    - What manages
-        - Bandwidth
-        - Delay
-        - Jitter
-        - Loss
+            # show ip interface brief
+            # show interfaces tunnel0
+            ```
+            - ACL that permit GRE
+            ```
+            (config) ip access-list extended inbound-from-Internet
+            (config-ext-nacl) permit tcp
+            (config-ext-nacl) permit udp
+            (config-ext-nacl) permit gre any any 
+            (config-ext-nacl) interface s0/0/0
+            (config-if) ip access-group inbound-from-Internet in 
+            ```
 
-    #### QoSのモデル
-    | モデル | 説明 |
-    | ---- | ---- |
-    | Integrated Services (IntServ) | アプリケーションの通信フローごとに帯域を予約する方式 |
-    | Differentiated Services (DIffServ) | トラフィックを分類、マーキング（優先度付け）、キューイング（トラフィックのキューへの振り分け）、スケジューリング（キューの優先度に応じたパケットの送出）する |
-    | Best Effort | FIFO |
-    <br>
+            - IPsec over GRE tunnel verification
+            ```
+            # show crypto ipsec sa
+            # show crypto isakmp sa
+            (config) debug crypto isakmp
+            ```
 
-    1. Classification
-    2. Marking
-        - L2 Marking
-            - End to End でない
-            - CoS: 802.1Qタグ内の3bitフィールド
-        - L3 Marking
-            - IP Precedence (IPP)
-                - IPv4ヘッダ内のType of Service (ToS) フィールド先頭3bit
-            - Defferentiated Services Code Point (DSCP)
-                - Per Hop Behavior (PHB) DSCP値により処理を決めること
-                - IPv4ヘッダ内のType of Service (ToS) フィールド先頭6bit
-        - Others
-            - QoS Group
-            - Discard class
-    3. Queueing キューにパケットを格納すること
-    4. Scheduling どのキューにあるパケットから送出していくのか
-        - FIFO
-        - Class-based Waited Fair Queueing (CBWFQ)
-        - Priority Queueing (PQ)
+        1. ### Dynamic Multipoint VPN (DMVPN)
+            - ハブアンドスポーク
+                - スポーク拠点間の通信のためにハブ拠点経由するので遅延が発生
+            - フルメッシュ
+                - コンフィグ量が多くなり管理上の手間が発生
+            - DMVPNのソリューション
+                - オンデマンドにスポーク間VPNを構築
+                - Next Hop Resolution Protocol (NHRP) でスポークはハブに自身のIPアドレスを登録
+                - NHRPでハブは他のスポークにそのIPアドレスを通知
 
-    - Shaping
+        1. ### PPP over Ethernet (PPPoE)
+            - Basic
+            ```
+            (config) interface dialer 2
+            (config-if) ip address negotiated
+            (config-if) mtu 1492
+            (config-if) encapsulation ppp
+            !! hostname given from ISP
+            !! hostname コマンドより優先される
+            (config-if) ppp chap hostname Fred
+            !! password given from ISP
+            !! username ... password ... コマンドの次に確認される
+            !! クライアント側が相手を認証する必要がないような場合に使用される
+            (config-if) ppp chap password Barney 
+            (config-if) dialer pool 1
 
-        定義した通信速度を超過した場合、それ以上のパケットはバッファに格納しておいて通信速度の超過が落ち着いてきてからトラフィックを送信していく方式
-        - outbound にのみ設定可能
+            (config) interface GigabitEthernet 0/0
+            (config-if) no ip address 
+            (config-if) pppoe enable
+            (config-if) pppoe-client dial-pool-number 1
 
-    - Policing
+            # show pppoe session
+            # show interface dialer 2
+            # show interface virtual-access 2 configuration
 
-        定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
-        - inbound outbound 両方設定可能
+            !! Debug
+            (config) debug ppp authentication
+            (config) debug ppp negotiation
+            (config) debug pppoe event
+            ```
 
-    ## Inter-VLAN routing
+        1. ### Teredo
+            - IPv6 host-enabled tunneling technique that uses IPv4 UDP
+            - Can pass through existing IPv4 NAT gateways
 
-    - Router
-        - Router On A Stick (ROAS)
+    1. ## QoS
+        - What manages
+            - Bandwidth
+            - Delay
+            - Jitter
+            - Loss
 
-            1つの物理インタフェースに複数の論理インタフェースを作成し，それぞれにVLANを割り当てる(トランクリンク)
+        1. ### QoSのモデル
+            | モデル | 説明 |
+            | ---- | ---- |
+            | Integrated Services (IntServ) | アプリケーションの通信フローごとに帯域を予約する方式 |
+            | Differentiated Services (DIffServ) | トラフィックを分類、マーキング（優先度付け）、キューイング（トラフィックのキューへの振り分け）、スケジューリング（キューの優先度に応じたパケットの送出）する |
+            | Best Effort | FIFO |
+            <br>
 
-    ```
-    ! 1. Create sub interface
-        ! subinterface-number = 1
-        (config) interface FastEthernet0/0.1
-    ! 2. カプセル化タイプとVLAN IDの指定
-        ! VLAN ID = 10
-        (config-subif) encapsulation dot1q 10 
-    ! 3. Configure IP address
-        (config-subif) ip address 192.168.10.254 255.255.255.0
-    ! 論理インタフェースをn個作成する場合，以上をn回行う
-    ```
+        1. ### QoSの手順
+            1. Classification
+            2. Marking
+                - L2 Marking
+                    - End to End でない
+                    - CoS: 802.1Qタグ内の3bitフィールド
+                - L3 Marking
+                    - IP Precedence (IPP)
+                        - IPv4ヘッダ内のType of Service (ToS) フィールド先頭3bit
+                    - Defferentiated Services Code Point (DSCP)
+                        - Per Hop Behavior (PHB) DSCP値により処理を決めること
+                        - IPv4ヘッダ内のType of Service (ToS) フィールド先頭6bit
+                - Others
+                    - QoS Group
+                    - Discard class
+            3. Queueing キューにパケットを格納すること
+            4. Scheduling どのキューにあるパケットから送出していくのか
+                - FIFO
+                - Class-based Waited Fair Queueing (CBWFQ)
+                - Priority Queueing (PQ)
 
-    - Switch
-        - Switch Virtual Interface (SVI) 
-            - VLANごとに論理インタフェースを作成する
-            - 1つの物理インタフェースで複数のVLANトラフィックを転送(トランスポート)
+        1. ### Shaping
+            - 定義した通信速度を超過した場合、それ以上のパケットはバッファに格納しておいて通信速度の超過が落ち着いてきてからトラフィックを送信していく方式
+            - outbound にのみ設定可能
 
-    ```
-    ! IPルーティングの有効化
-        (config) ip routing
-    ! SVIの作成
-        (config) interface vlan 10
-        (config-if) ip address 192.168.10.254 255.255.255.0
-        (config-if) no shutdown
+        1. ### Policing
+            - 定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
+            - inbound outbound 両方設定可能
 
-        # show vlan
-        # show interfaces status
-        # show interface brief
-        # show ip route
-    ```
+    1. ## Inter-VLAN routing
 
-    - Switch
-        - Routed port
-            - 1つの物理インタフェースで1つのVLANトラフィックのみ転送
-            - L3 EtherChannel を作成するのに使用する
-    ```
-    ! IPルーティングの有効化
-        (config) ip routing
-    ! ルーテッドポートの作成 L3ポートになる
-        (config) interface gigabitEthernet 0/1
-        (config-if) no switchport 
-        (config-if) ip address 192.168.10.254 255.255.255.0
-        (config-if) no shutdown
+        1. ### Router
+            1. #### Router On A Stick (ROAS)
 
-        # show ip interface brief
-        # show ip route
-    ```
+                1つの物理インタフェースに複数の論理インタフェースを作成し，それぞれにVLANを割り当てる(トランクリンク)
 
-    - L3 EtherChannelの設定
-    ```
-    　  (config)# ip routing
-    ! ルーテッドポートの作成
-    ! 複数の物理インタフェースで設定する
-    　  (config)# interface interface-id
-    　  (config-if) no switchport
-        ! group-number = 10
-    　  (config-if) channel-group 10 mode [ auto | desirable | on | active | passive ]
+            ```
+            !! 1. Create sub interface
+                !! subinterface-number = 1
+                (config) interface FastEthernet0/0.1
+            !! 2. カプセル化タイプとVLAN IDの指定
+                !! VLAN ID = 10
+                (config-subif) encapsulation dot1q 10 
+            !! 3. Configure IP address
+                (config-subif) ip address 192.168.10.254 255.255.255.0
+            !! 論理インタフェースをn個作成する場合，以上をn回行う
+            ```
 
-        ! port-channel = 10
-    　  (config) interface port-channel 10 
-    　  (config-if) no switchport
-    　  (config-if) ip address address mask
-    　  (config-if) no shutdown
-    ```
+        1. ### Switch
+            1. #### Switch Virtual Interface (SVI) 
+                - VLANごとに論理インタフェースを作成する
+                - 1つの物理インタフェースで複数のVLANトラフィックを転送(トランスポート)
 
-    ## First Hop Redundancy Protocol (FHRP)
+                ```
+                !! IPルーティングの有効化
+                (config) ip routing
+                !! SVIの作成
+                (config) interface vlan 10
+                (config-if) ip address 192.168.10.254 255.255.255.0
+                (config-if) no shutdown
+
+                # show vlan
+                # show interfaces status
+                # show interface brief
+                # show ip route
+                ```
+
+            1. #### Routed port
+                - 1つの物理インタフェースで1つのVLANトラフィックのみ転送
+                - L3 EtherChannel を作成するのに使用する
+                ```
+                !! IPルーティングの有効化
+                (config) ip routing
+                !! ルーテッドポートの作成 L3ポートになる
+                (config) interface gigabitEthernet 0/1
+                (config-if) no switchport 
+                (config-if) ip address 192.168.10.254 255.255.255.0
+                (config-if) no shutdown
+
+                # show ip interface brief
+                # show ip route
+                ```
+
+            1. #### L3 EtherChannelの設定
+            ```
+            (config)# ip routing
+            !! ルーテッドポートの作成
+            !! 複数の物理インタフェースで設定する
+            (config)# interface interface-id
+            (config-if) no switchport
+            !! group-number = 10
+            (config-if) channel-group 10 mode [ auto | desirable | on | active | passive ]
+
+            !! port-channel = 10
+            (config) interface port-channel 10 
+            (config-if) no switchport
+            (config-if) ip address address mask
+            (config-if) no shutdown
+            ```
+
+    1. ## First Hop Redundancy Protocol (FHRP)
 
         デフォルトゲートウェイを冗長化させる技術
 
-    #### Three FHRP Options
-    | Acronym | Full Name | Origin | Redundancy Approach | Load Balancing |
-    | ---- | ---- | ---- | ---- | ---- |
-    | HSRP | Hot Standby Router Protocol | Cisco | Active/standby | Per subnet |
-    | VRRP | Virtual Router Redundancy Protocol | RFC 5798 | Active/standby | Per subnet |
-    | GLBP | Gateway Load Balancing Protocol | Ciso | Active/active | Per host |
-    <br>
+        1. ### Three FHRP Options
+            | Acronym | Full Name | Origin | Redundancy Approach | Load Balancing |
+            | ---- | ---- | ---- | ---- | ---- |
+            | HSRP | Hot Standby Router Protocol | Cisco | Active/standby | Per subnet |
+            | VRRP | Virtual Router Redundancy Protocol | RFC 5798 | Active/standby | Per subnet |
+            | GLBP | Gateway Load Balancing Protocol | Ciso | Active/active | Per host |
+            <br>
 
-    #### HSRPv1 Versus HSRPv2
-    | Feature | Version 1 | Version 2 |
-    | ---- | ---- | ---- |
-    | IPv6 support | No | Yes |
-    | Smallest unit for Hello timer | Second | Millisecond |
-    | Range of group numbers | 0-255 | 0-4095 |
-    | MAC address used | 0000.0C07.ACxx | 0000.0C9F.Fxxx |
-    | IPv4 multicast address used | 224.0.0.2 | 224.0.0.102 |
-    | Does protocol use a unique identifier for each router ? | No | Yes |
-    <br>
+        1. ### HSRPv1 Versus HSRPv2
+            | Feature | Version 1 | Version 2 |
+            | ---- | ---- | ---- |
+            | IPv6 support | No | Yes |
+            | Smallest unit for Hello timer | Second | Millisecond |
+            | Range of group numbers | 0-255 | 0-4095 |
+            | MAC address used | 0000.0C07.ACxx | 0000.0C9F.Fxxx |
+            | IPv4 multicast address used | 224.0.0.2 | 224.0.0.102 |
+            | Does protocol use a unique identifier for each router ? | No | Yes |
+            <br>
 
-    - Active router will be chosen by
-        - Highest IP address
-        - Configured priority
+            - Active router will be chosen by
+                - Highest IP address
+                - Configured priority
 
-    ```
-        ! R1
-        (config-if) standby 1 ip 10.1.1.1
-        ! higher is better
-        (config-if) standby 1 priority 110 
-        ! take over active when current avtive router's priority is lower than own priority
-        (config-if) standby 1 preempt 
-        ! R2
-        (config-if) standby 1 ip 10.1.1.1
-        (config-if) standby 1 priority 100 
+            ```
+            !! R1
+            (config-if) standby 1 ip 10.1.1.1
+            !! higher is better
+            (config-if) standby 1 priority 110 
+            !! take over active when current avtive router's priority is lower than own priority
+            (config-if) standby 1 preempt 
+            !! R2
+            (config-if) standby 1 ip 10.1.1.1
+            (config-if) standby 1 priority 100 
 
-        # show standby brief
-        # show standby
-            ! shows standby version
-    ```
+            # show standby brief
+            # show standby
+            !! shows standby version
+            ```
 
-    ## IPv6
+    1. ## IPv6
 
-    - Prefix
+        1. ### Prefix
+            |      |      |
+            | ---- | ---- |
+            | FE80 | Link-local |
+            | FD | Unique-local (プライベートIPv4) |
+            | 2,3 | Global unicast (グローバルIPv4) |
+            | FF | Multicast |
+            | FF02::2 | all-router multicast group |
+            | FF02::5 | OSPFv3 all SPF routers |
+            | FF02::6 | OSPFv3 all DR routers |
+            | FF02::9 | All Routing Information Protocol (RIP) routers on a link |
+            | FF02::A | EIGRP routers | 
+            <br>
 
-    |      |      |
-    | ---- | ---- |
-    | FE80 | Link-local |
-    | FD | Unique-local (プライベートIPv4) |
-    | 2,3 | Global unicast (グローバルIPv4) |
-    | FF | Multicast |
-    | FF02::2 | all-router multicast group |
-    | FF02::5 | OSPFv3 all SPF routers |
-    | FF02::6 | OSPFv3 all DR routers |
-    | FF02::9 | All Routing Information Protocol (RIP) routers on a link |
-    | FF02::A | EIGRP routers | 
-    <br>
+        1. ### 特徴
+            - plug-and-play
+            - no broadcasts
+            - autoconfigration
 
-    - 特徴
-        - plug-and-play
-        - no broadcasts
-        - autoconfigration
+        1. ### Enable routing IPv6 packets
+            ```
+            (config) ipv6 unicast-routing
+            ```
 
-    - Enable routing IPv6 packets
-    ```
-        (config) ipv6 unicast-routing
-    ```
+        1. ### IPv6 addressing
+            1. Stateless Address Auto Configuration (SLAAC)
+                - Prefix is autoconfiguration
+                - Interface ID is EUI-64
+                - ホストはルータにRSを送信し，ルータはRAをホストに送信する
+                - DHCPv6サーバが要らない
+            1. Stateless DHCPv6
+                - SLAACで求めたIPv6アドレスでは足りない情報をDHCPv6サーバから取得
+                - DNSサーバの情報を入手
+            1. Statefull DHCPv6
+                - DHCPv6 provide prefix and interface ID
+                - DNSサーバの情報を入手
+                - IPv4と同じ動作
 
-    - IPv6 addressing
-        1. Stateless Address Auto Configuration (SLAAC)
-            - Prefix is autoconfiguration
-            - Interface ID is EUI-64
-            - ホストはルータにRSを送信し，ルータはRAをホストに送信する
-            - DHCPv6サーバが要らない
-        1. Stateless DHCPv6
-            - SLAACで求めたIPv6アドレスでは足りない情報をDHCPv6サーバから取得
-            - DNSサーバの情報を入手
-        1. Statefull DHCPv6
-            - DHCPv6 provide prefix and interface ID
-            - DNSサーバの情報を入手
-            - IPv4と同じ動作
-
-    ## Simple Network Management Protocol (SNMP) 
+    1. ## Simple Network Management Protocol (SNMP) 
 
         ルータ、スイッチ、サーバなどTCP/IPネットワークに接続された通信機器に対し、ネットワーク経由で監視、制御するためのアプリケーション層プロトコル
 
-    - SNMP Manager
-        - 管理する側
-        - Windows server, Linux server
-        - UDP port 162
-    - SNMP Agent
-        - 管理される側
-        - Router, Switch, Server
-        - UDP port 161
+        1. ### 用語
+            - SNMP Manager
+                - 管理する側
+                - Windows server, Linux server
+                - UDP port 162
+            - SNMP Agent
+                - 管理される側
+                - Router, Switch, Server
+                - UDP port 161
 
-    - SNMP trap
-        - SNMP AgentからSNMP Managerに能動的に送信する通知のこと
-    ```
-        (config) snmp-server enable traps
-    ```
+            - SNMP trap
+                - SNMP AgentからSNMP Managerに能動的に送信する通知のこと
+                ```
+                (config) snmp-server enable traps
+                ```
 
-    - Management Information Base (MIB)
-        - SNMPエージェントが持っている機器情報の集合体のこと
-        - OID (オブジェクトID)
-        - Remote Monitoring MIB (RMON)
+            - Management Information Base (MIB)
+                - SNMPエージェントが持っている機器情報の集合体のこと
+                - OID (オブジェクトID)
+                - Remote Monitoring MIB (RMON)
 
-    - SNMP Community
-        - SNMPで管理するネットワークシステムの範囲のこと
-        - MIBへのアクセス権限
-            - Read Only (RO)
-            - Read Write (RW)
-            - Read-write-all
-                - コミュニティを含めてMIB情報の読み書きが可能
+            - SNMP Community
+                - SNMPで管理するネットワークシステムの範囲のこと
+                - MIBへのアクセス権限
+                    - Read Only (RO)
+                    - Read Write (RW)
+                    - Read-write-all
+                        - コミュニティを含めてMIB情報の読み書きが可能
 
-    | SNMP version | RFC | What |
-    | ---- | ---- | ---- |
-    | SNMPv1 | RFC 1157 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認なし。|
-    | SNMPv2c | RFC 1901 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認あり。 |
-    | SNMPv3 | RFC 2273-2275 | ユーザ単位の暗号化されたパスワード認証。SNMPトラップにおける再送確認あり。 |
+        1. ### バージョンの比較 
+            | SNMP version | RFC | What |
+            | ---- | ---- | ---- |
+            | SNMPv1 | RFC 1157 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認なし。|
+            | SNMPv2c | RFC 1901 | SNMPコミュニティによる平文認証。SNMPトラップにおける再送確認あり。 |
+            | SNMPv3 | RFC 2273-2275 | ユーザ単位の暗号化されたパスワード認証。SNMPトラップにおける再送確認あり。 |
 
-    - SNMPv2c
-        - SNMP AgentはSNMP Community の文字列でSNMP Managerを認証
-    ```
-    ! Enable SNMP agent
-        (config) snmp-server community [community-string] RO [ipv6 acl-name] [acl-name]
-    ! Option
-        (config) snmp-server location [text-describing-location]
-        ! e.g., (config) snmp-server location Atlanta
-        (config) snmp-server contact [contact-name]
-        ! 問題が起きた時の連絡先
+        1. ### SNMPv2c
+            - SNMP AgentはSNMP Community の文字列でSNMP Managerを認証
+            ```
+            !! Enable SNMP agent
+            (config) snmp-server community [community-string] RO [ipv6 acl-name] [acl-name]
+            !! Option
+            !! e.g., (config) snmp-server location Atlanta
+            (config) snmp-server location [text-describing-location]
+            !! 問題が起きた時の連絡先
+            (config) snmp-server contact [contact-name]
 
-        ! statusが分かる
-        # show snmp
-        ! 設定が分かる
-        # show snmp community
-    ```
+            !! statusが分かる
+            # show snmp
+            !! 設定が分かる
+            # show snmp community
+            ```
 
-    - SNMPv3
-    ```
-        (config) snmp-server group [group-name] v3 [noauth|auth|priv] write [view-name]
-    ! userをgroupに参加させる
-        (config) snmp-server user morishima [group-name] v3 auth md5 [password] priv AES [key-len] [key-value]
-    ! トラップの設定
-    ! hostはSNMPマネージャ
-        (config) snmp-server host [host] [informs|traps(default)] version 3 [noauth|auth|priv] md5 [password] 
+        1. ### SNMPv3
+            ```
+            (config) snmp-server group [group-name] v3 [noauth|auth|priv] write [view-name]
+            !! userをgroupに参加させる
+            (config) snmp-server user morishima [group-name] v3 auth md5 [password] priv AES [key-len] [key-value]
+            !! トラップの設定
+            !! hostはSNMPマネージャ
+            (config) snmp-server host [host] [informs|traps(default)] version 3 [noauth|auth|priv] md5 [password] 
 
-        ! noauth: Neither Auth nor Priv
-        ! auth: Auth but no Priv
-        ! priv: Auth and Priv
+            !! noauth: Neither Auth nor Priv
+            !! auth: Auth but no Priv
+            !! priv: Auth and Priv
 
-        ! auth md5 [password] は snmp-server groupでauthかprivを選択したときに必要
-        ! priv AES [key-len] [key-value] は snmp-server groupでprivを選択したときに必要
-    ```
+            !! auth md5 [password] は snmp-server groupでauthかprivを選択したときに必要
+            !! priv AES [key-len] [key-value] は snmp-server groupでprivを選択したときに必要
+            ```
 
-    ## IP Service Level Agreement (IP SLA)
-    - 機器間のRTTのthresholdを定め，SNMPトラップを送信することなどができる
-    - can use to dynamically identify a connectivity problem between a Cisco device and a designated endpoint
+    1. ## IP Service Level Agreement (IP SLA)
+        - 機器間のRTTのthresholdを定め，SNMPトラップを送信することなどができる
+        - can use to dynamically identify a connectivity problem between a Cisco device and a designated endpoint
 
-    ## Switched Port Analyzer (SPAN)
+    1. ## Switched Port Analyzer (SPAN)
 
         スイッチのミラーリング機能
 
-    - 注意点
-        - SPAN dst portは１つのSPAN sessionにつき１つ
-        - SPAN src portは１つのSPAN sessionにつき複数設定可能 
-        - srcはinterfaceかVLANのどちらかのみ
-        - SPAN dst portとSPAN src portは別々でなければならない
-        - SPAN dst portはMAC learningしない
+        1. ### 注意点
+            - SPAN dst portは１つのSPAN sessionにつき１つ
+            - SPAN src portは１つのSPAN sessionにつき複数設定可能 
+            - srcはinterfaceかVLANのどちらかのみ
+            - SPAN dst portとSPAN src portは別々でなければならない
+            - SPAN dst portはMAC learningしない
 
-    - Local SPAN の影響
-        - It doubles the load on the forwarding engine
-        - It prevents span destination from using port security
-        - It double internal switch traffic
+        1. ### Local SPAN の影響
+            - It doubles the load on the forwarding engine
+            - It prevents span destination from using port security
+            - It double internal switch traffic
 
-    ```
-        (config) monitor session 1 source interface G1/0/11 - 12 rx
-        ! rx がない場合，両方向
-        (config) monitor session 1 destination interface G1/0/21
-    ```
+            ```
+            (config) monitor session 1 source interface G1/0/11 - 12 rx
+            !! rx がない場合，両方向
+            (config) monitor session 1 destination interface G1/0/21
+            ```
 
 # 4. Others
 
