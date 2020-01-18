@@ -249,10 +249,12 @@
     
     1. ## EtherChannel
         - 複数の物理リンクを束ねて1つの論理リンクにする
-        - PAgP desirable - desirable | auto
-            - シスコ独自プロトコル
         - LACP active - active | passive
             - IEEE802.3ad
+            - EtherChannelの一端は2つのスイッチに分かれてもよい
+        - PAgP desirable - desirable | auto
+            - シスコ独自プロトコル
+            - Multicast address 01-00-0C-CC-CC-CC
         - EtherChannelを形成するマシンのどちらかは desirable | active にする必要がある
 
         ```
@@ -261,6 +263,7 @@
         (config) interface fa 0/2
         (config-if) channel-group 1 mode [ auto | desirable | on | active | passive ]
         !! mode on が多い
+        !! on は PAgP でも LACP でもない
 
         # show spanning-tree
         # show etherchannel summary
@@ -437,6 +440,7 @@
 
         1. ### note
             - Port filters are applied as first
+            - ACL must be numbered when applied to vty
 
     1. ## NAT
         1. ### Static
@@ -685,12 +689,15 @@
             | State | Description |
             | ---- | ---- |
             | Idle | Refuse connections |
-            | Connect | TCP handshake complested. Wait for the connection to be completed. |
-            | Active | Try another TCP handshake. Listen for and accept connection. |
+            | Connect | Wait for a TCP connection to be completed. |
+            | Active | Try TCP handshake. Listen for and accept connection. |
             | OpenSent | An OPEN message was sent. Wait for an OPEN message. |
             | OpenConfirm | Received a reply to the OPEN message. Wait for a KEEPALIVE or NOTIFICATION message |
             | Established | UPDATE, NOTIFICATION, and KEEPALIVE message are exchanged with peers. |
             <br>
+        
+        1. ### Neighbor確立の条件
+            - BGP version が一致
 
         1. ### Basic
             ```
@@ -944,6 +951,7 @@
         1. ### Policing
             - 定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
             - inbound outbound 両方設定可能
+            - IP precedence を書き換えることが可能
 
     1. ## Inter-VLAN routing
 
@@ -1199,82 +1207,112 @@
             (config) monitor session 1 destination interface G1/0/21
             ```
 
-# 4. Others
+1. # Others
 
-## 4.1. Cloud Computing
+    1. ## Cloud Computing
+        | | Internet | Internet VPN | MPLS VPN | Ethernet WAN | Intercloud Exchange |
+        | ---- | ---- | ---- | ---- | ---- | ---- |
+        | Secure | No | Yes | Yes | Yes | Yes |
+        | QoS | No | No | Yes | Yes | Yes |
+        | Requires capacity planning | Yes | Yes | Yes | Yes | Yes |
+        | Easier migration to new provider | Yes | Yes | No | No | Yes |
+        | Can begin using punlic cloud quickly | Yes | Yes | No | No | No |
 
-| | Internet | Internet VPN | MPLS VPN | Ethernet WAN | Intercloud Exchange |
-| ---- | ---- | ---- | ---- | ---- | ---- |
-| Secure | No | Yes | Yes | Yes | Yes |
-| QoS | No | No | Yes | Yes | Yes |
-| Requires capacity planning | Yes | Yes | Yes | Yes | Yes |
-| Easier migration to new provider | Yes | Yes | No | No | Yes |
-| Can begin using punlic cloud quickly | Yes | Yes | No | No | No |
+        - MPLS for WAN
+            - Supports CoS
+            - Provides VPN
 
-- MPLS for WAN
-    - Supports CoS
-    - Provides VPN
+        - Circumstances your organization require a wide bandwidth Internet connection
+            - Cloud computing
+            - peer-to-peer file sharing
+            - IaaS
 
-- Circumstances your organization require a wide bandwidth Internet connection
-    - Cloud computing
-    - peer-to-peer file sharing
-    - IaaS
+    1. ## Software Defined Network (SDN) and Network Programmability
 
-## 4.2. Software Defined Network (SDN) and Network Programmability
+        1. ### 用語
+            - Management Plane
+                - Telnet, SSH, SNMP
+            - Control Plane
+                - データ転送における経路の制御や計算を行う機能
+            - Data Plane
+                - フレームの転送を行う機能
 
-- Management Plane
-    - Telnet, SSH, SNMP
-- Control Plane
-    - データ転送における経路の制御や計算を行う機能
-- Data Plane
-    - フレームの転送を行う機能
+        1. ### SDN Architecture
 
-### SDN Architecture
+            - Application
 
-- Application
+                |  
+                | Northbound API (Northbound Interface)  
+                | e.g. REST  
+                |
 
-    |  
-    | Northbound API (Northbound Interface)  
-    | e.g. REST  
-    |
+            - Control
 
-- Control
+                |  
+                | Southbound API (Southbound Interface)  
+                | e.g. OpenFlow   
+                |
 
-    |  
-    | Southbound API (Southbound Interface)  
-    | e.g. OpenFlow   
-    |
+            - Infrastracture
 
-- Infrastracture
+        1. ### Cisco Application Centric Infrastructure (Cisco ACI)
+            Ciscoが提供するSDN製品
+            1. #### Application Policy Infrastructure Controller (APIC)
+                - Cisco ACIにおけるデータセンター向けのSDNコントローラ
+            1. #### APIC Enterprise Module (APIC-EM)
+                - LAN/WAN向けのSDNコントローラ 
+                - ライセンス不要
+                - 設定にはSrc address と Dest address が必要
+                1. ##### Path Trace App
+                    - 送信デバイスから宛先デバイスに転送されるまでのパスを確認
+                    - 対応プロトコル
+                        - BGP
+                        - Dynamic Multipoint VPN (DMVPN)
+                        - EIGRP
+                        - IS-IS
+                        - Equal Cost Multi Path / Trace Route (ECMP/TR)
+                        - Equal Cost Multi Path(ECMP)
+                        - HSRP 
+                1. ##### Path Trace ACL
+                    - どのACLによりパケットが破棄されるのかをGUIで視覚的に確認
+                    - Only matching access control entries (ACEs) are reported.
+                    - If you leave out the protocol, source port, or destination port when defining a path trace, the results include ACE matches for all possible values for these fields.
+                    - If no matching ACEs exists in the ACL, the flow is reported to be implicitly denied
+                1. ##### Roll-based Access Control (RBAC)
+                    - アクセス制御手法の一つ
+                    - 特定の操作を実行するための権限が、特定のロールに割り当てられる
 
-
-### Cisco Application Centric Infrastructure (Cisco ACI)
-- Ciscoが提供するSDN製品
-- Application Policy Infrastructure Controller (APIC)
-    - Cisco ACIにおけるデータセンター向けのSDNコントローラ
-- APIC Enterprise Module (APIC-EM)
-    - LAN/WAN向けのSDNコントローラ 
-    - ライセンス不要
-    - 設定にはSrc address と Dest address が必要
-    - Path Trace App
-        - 送信デバイスから宛先デバイスに転送されるまでのパスを確認
-        - 対応プロトコル
-            - BGP
-            - Dynamic Multipoint VPN (DMVPN)
-            - EIGRP
-            - IS-IS
-            - Equal Cost Multi Path / Trace Route (ECMP/TR)
-            - Equal Cost Multi Path(ECMP)
-            - HSRP 
-    - Path Trace ACL
-        - どのACLによりパケットが破棄されるのかをGUIで視覚的に確認
-        - Only matching access control entries (ACEs) are reported.
-        - If you leave out the protocol, source port, or destination port when defining a path trace, the results include ACE matches for all possible values for these fields.
-        - If no matching ACEs exists in the ACL, the flow is reported to be implicitly denied
-    - Roll-based Access Control (RBAC)
-        - アクセス制御手法の一つ
-        - 特定の操作を実行するための権限が、特定のロールに割り当てられる
-
+    1. ## L2 Security
+        1. ### IEEE802.1X
+            - 有線LANや無線LANにおけるユーザ認証の規格
+            - 3つのモード
+                - Monitor mode
+                - Low impact mode
+                - High security mode
+        1. ### AAA 3つのセキュリティ機能
+            - Authentication
+                - 認証
+            - Authorization
+                - 認証に成功したユーザに対して提供する権限
+            - Accounting
+        1. ### AAAの実装
+            | | RADIUS | TACACS+ |
+            | ---- | ---- | ---- |
+            | Transportation & Ports | UDP port 1812, 1813<br> Support Extensible Authentication Protocol (EAP) | TCP port 49 |
+            | Encryption | Only passwords | Entire packet |
+            | Standards | Open standard | Cisco proprietary |
+            | Operation | Authentication and Authorization are combined in one function | AAA are separated |
+            | Logging | No cammand logging | Full command logging |
+        1. ### DHCP Snooping on switch 嗅ぐ->盗み見る
+            ファイアウォールのようなセキュリティ機構
+            1. #### 用語
+                - Trusted: Switch, Router, DHCP Server
+                - Untrusted: Client device such as PC
+            1. #### What DHCP Snooping do
+                - Validates DHCP messages received from untrusted sources and filters out invalid messages.
+                - Rate-limits DHCP traffic from trusted and untrusted sources.
+                - Builds and maintains the DHCP snooping binding database, which contains information about untrusted hosts with leased IP addresses.
+                - Utilizes the DHCP snooping binding database to validate subsequent requests from untrusted hosts.
 
 # 5. Note
 
@@ -1358,47 +1396,6 @@
         - BGP
             - IBGP peer (same AS)
             - EBGP peer (other AS)
-
-## STP
-
-- PortFast
-    - パソコンとつなぐポートはフォワーディング
-- Bridge Protocol Data unit - (BPDU)
-    - BPDU Guard
-        - PortFastポートがBPDUを受信したらブロッキングする
-- Rapid STP - (RSTP)
-    - pvst
-    - rapid-pvst
-    - mst
-
-## L2 Security
-- IEEE802.1X
-    - 有線LANや無線LANにおけるユーザ認証の規格
-    - 3つのモード
-        - Monitor mode
-        - Low impact mode
-        - High security mode
-- AAA 3つのセキュリティ機能
-    - Authentication
-        - 認証
-    - Authorization
-        - 認証に成功したユーザに対して提供する権限
-    - Accounting
-- AAAの実装
-    - RADIUS
-        - IETF standard
-        - UDP 1812, 1813
-        - リモートサーバの認証
-        - パスワード情報のみ暗号化
-    - TACACS+
-        - Cisco original
-        - TCP 49
-        - リモートサーバの認証
-        - パケット全体を暗号化
-        - ユーザごとに異なるCLI群の認証 (access-level authorization)
-- DHCP Snooping on switch 嗅ぐ->盗み見る
-    - Trusted: Switch, Router, DHCP Server
-    - Untrusted: Client device such as PC
 
 ## Misc
 
