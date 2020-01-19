@@ -183,11 +183,19 @@
 
         1. ### STPの流れ
             1. Root Bridge (RB) の選出
+                - 最小のBridge ID
+                - Bridge ID = Bridge priority + MAC address
             1. Root Port (RP) の選出
             1. Designated Port (DP) の選出
                 - RBのすべてのポートはDP
             1. Non-Designated Port (NDP) の選出
                 - 残りのポート
+        
+        1. ### コストの計算
+            - 10Gbps : 2
+            - 1Gbps : 4
+            - 100Mbps : 19
+            - 10Mbps : 100
     
         1. ### Enable STP
             ```
@@ -274,26 +282,13 @@
         - Dynamic Trunking Protocol (DTP)
             - デフォルトはDynamic Auto
 
-        1. ### Version
+        1. ### Setting
             ```
-            (config) vtp version [ 1 | 2 | 3 ]
-
             !! version 1,2 ... Extended VLAN not allowd
             !! version 3 ... Extended VLAN allowd
-            ```
-
-        1. ### Domain
-            ```
+            (config) vtp version [ 1 | 2 | 3 ]
             (config) vtp domain domainname
-            ```
-
-        1. ### Mode
-            ```
             (config) vtp mode [ server | client | transparent ]
-            ```
-
-        1. ### Password
-            ```
             (config) vtp password password
             ```
 
@@ -303,6 +298,9 @@
             (config) (no) vtp pruning
             # show vtp status
             ```
+        
+        1. ### 設定ファイル
+            - vlan.datに保存される
 
     1. ## Attacks
         1. ### Double tagging
@@ -675,12 +673,12 @@
             - interface bandwidth コマンドは共通
             ```
             !! Create process
-            (config) ipv6 router eigrp [as-number]
             !! (config) router eigrp [as-number]
+            (config) ipv6 router eigrp [as-number]
+            (config-router) eigrp router-id 1.1.1.1
 
             !! Enable EIGRP
             (config-if) ipv6 eigrp [as-number]
-            (config-router) network 10.24.55.10 0.0.0.0
             ```
 
     1. ## BGP
@@ -772,6 +770,7 @@
             1. #### CHAP
                 - secure
                 - md5
+                - One way authentication
                 ```
                 (config) hostname R1
                 !! username must match remote hostname
@@ -825,6 +824,9 @@
         1. ### Metro Ethernet
             - Committed Information Rate (CIR)
                 - Minimum guranteed bandwidth
+            - E-Line = point-to-point
+            - E-Tree = hub-and-spoke
+            - E-LAN = full mesh
 
     1. ## VPN
 
@@ -833,35 +835,37 @@
                 - IPsec VPNを構築することができるファイアウォール
 
         1. ### General Routing Encapsulation (GRE) tunnel
-            - MTUとMaximum Segment Size (MSS)が減る
-            - Basic
-            ```
-            (config) interface tunnel [number]
-            (config-if) ip address 10.1.1.1 255.255.255.0
-            (config-if) tunnel source 1.1.1.1
-            !! remote router's ip address
-            !! tunnel destinationがundefinedの場合，インタフェースがdownになる
-            (config-if) tunnel destination 2.2.2.2
+            1. #### note
+                - MTUとMaximum Segment Size (MSS)が減る
+                - Must create logical interface
+            1. #### Basic
+                ```
+                (config) interface tunnel [number]
+                (config-if) ip address 10.1.1.1 255.255.255.0
+                (config-if) tunnel source 1.1.1.1
+                !! remote router's ip address
+                !! tunnel destinationがundefinedの場合，インタフェースがdownになる
+                (config-if) tunnel destination 2.2.2.2
 
-            # show ip interface brief
-            # show interfaces tunnel0
-            ```
-            - ACL that permit GRE
-            ```
-            (config) ip access-list extended inbound-from-Internet
-            (config-ext-nacl) permit tcp
-            (config-ext-nacl) permit udp
-            (config-ext-nacl) permit gre any any 
-            (config-ext-nacl) interface s0/0/0
-            (config-if) ip access-group inbound-from-Internet in 
-            ```
+                # show ip interface brief
+                # show interfaces tunnel0
+                ```
+            1. #### ACL that permit GRE
+                ```
+                (config) ip access-list extended inbound-from-Internet
+                (config-ext-nacl) permit tcp
+                (config-ext-nacl) permit udp
+                (config-ext-nacl) permit gre any any 
+                (config-ext-nacl) interface s0/0/0
+                (config-if) ip access-group inbound-from-Internet in 
+                ```
 
-            - IPsec over GRE tunnel verification
-            ```
-            # show crypto ipsec sa
-            # show crypto isakmp sa
-            (config) debug crypto isakmp
-            ```
+            1. #### IPsec over GRE tunnel verification
+                ```
+                # show crypto ipsec sa
+                # show crypto isakmp sa
+                (config) debug crypto isakmp
+                ```
 
         1. ### Dynamic Multipoint VPN (DMVPN)
             - ハブアンドスポーク
@@ -1363,14 +1367,12 @@
 | 不明 - ( Routing Table にのらない ) | 255 | |
 
 - IGP (AS内で使用されるプロトコル)
-    - Distance-vector 伝言ゲーム
+    - Distance-vector 伝言ゲーム Bellman-Ford
         - RIPv1
-            - Bellman-Ford
             - Classful
             - broadcase update
             - no VLSM
         - RIPv2
-            - Bellman-Ford
             - Classless
             - multicast update
             - VLSM
@@ -1392,7 +1394,7 @@
             - Diffusing Update Algorithm (DUAL)
             - Classless
 - EGP (AS間で使用されるプロトコル)
-    - Distance-vector
+    - Path-vector
         - BGP
             - IBGP peer (same AS)
             - EBGP peer (other AS)
