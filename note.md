@@ -238,6 +238,8 @@
             PortFastポートがBPDU(STPのメッセ)を受信したらブロッキングする
             ```
             (config-if) spanning-tree bpduguard [ enable | disable ]
+            !! OR
+            (config) spanning-tree portfast bpduguard default
             ```
 
         1. ### Root Guard
