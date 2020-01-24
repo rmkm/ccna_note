@@ -1002,11 +1002,13 @@
         1. ### Shaping
             - 定義した通信速度を超過した場合、それ以上のパケットはバッファに格納しておいて通信速度の超過が落ち着いてきてからトラフィックを送信していく方式
             - outbound にのみ設定可能
+            - Configured in bits per second
 
         1. ### Policing
             - 定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
             - inbound outbound 両方設定可能
             - IP precedence を書き換えることが可能
+            - Configured in bytes
 
         1. ### Others
             - CAR: policies traffic based on its bandwidth allocation
@@ -1373,6 +1375,12 @@
             | Standards | Open standard | Cisco proprietary |
             | Operation | Authentication and Authorization are combined in one function | AAA are separated |
             | Logging | No cammand logging | Full command logging |
+        1. ### Responses from TACACS+
+            - ACCEPT
+            - REJECT
+            - ERROR
+            - CONTINUE
+                - The user is prompted for additional authentication information.
         1. ### DHCP Snooping on switch 嗅ぐ->盗み見る
             ファイアウォールのようなセキュリティ機構
             1. #### 用語
