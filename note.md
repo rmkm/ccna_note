@@ -186,6 +186,7 @@
                 - 最小のBridge ID
                 - Bridge ID = Bridge priority + MAC address
             1. Root Port (RP) の選出
+                - RBまでのコストが最小のインタフェース
             1. Designated Port (DP) の選出
                 - RBのすべてのポートはDP
             1. Non-Designated Port (NDP) の選出
@@ -308,6 +309,11 @@
             - native VLAN IDを変えるとよい
 
     1. ## Switch stacking
+        1. ### Master election
+            1. The switch with the highest stack member priority value
+            1. The switch that has the configuration file
+            1. The switch withing the highest uptime
+            1. The switch with the lowerst MAC address
         1. ### 1:N
             1:N master redundancy allows each stack member to serve as a master, providing the highest reliability for forwarding. 
 
@@ -505,12 +511,19 @@
 
         1. ### OSPFの流れ
             1. Helloパケットによるネイバー関係の確立
-                - Init -> 2-Way -> Full
+                - Init -> 2-Way (stable) -> Full (stable)
             2. Link State Advertisement (LSA) 交換
             3. Link State Database (LSDB) 作成
             4. トポロジマップ作成
             5. Shortest Path First (SPF) アルゴリズムを用いてSPFツリーを作成
             6. 最小コストのパスがルーティングテーブルに追加される
+        
+        1. ### データベース交換に使用されるOSPFメッセージ
+            | Message | Descrption |
+            | ---- | ---- |
+            | Link-State Request (LSR) | Used by a router to request specific LSAs from a neighbor |
+            | Link-State Update (LSU) | Used by a router to send LSAs to a neighbor |
+            | Link-State Database Descriptor (DD) | Used by a router to send a summary list of LSAs to a neighbor, as part of the process of a router deciding which LSAs it should request with LSR packets.
 
         1. ### Neighborの条件
             - Interfaceがup/up
@@ -592,6 +605,16 @@
             # show ipv6 ospf neighbor
             # show ipv6 ospf neighbor serial0/0
             # show ipv6 ospf database
+            ```
+        
+        1. ### show command
+            ```
+            # show ip ospf
+            # show ip ospf database
+            # show ip ospf interface
+            # show ip ospf interface [interface]
+            # show ip ospf neighbor
+            # show ip ospf neighbor [interface]
             ```
 
     1. ## EIGRP
@@ -679,6 +702,14 @@
 
             !! Enable EIGRP
             (config-if) ipv6 eigrp [as-number]
+            ```
+
+        1. ### show command
+            ```
+            # show ip eigrp database
+            # show ip eigrp interfaces [AS-number]
+            # show ip eigrp neighbors [AS-number]
+            # show ip eigrp topology [AS-number]
             ```
 
     1. ## BGP
@@ -956,6 +987,14 @@
             - 定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
             - inbound outbound 両方設定可能
             - IP precedence を書き換えることが可能
+
+        1. ### Others
+            - CAR: policies traffic based on its bandwidth allocation
+            - Best effort: service level that provides basic connectivity without differentiation
+            - Soft QoS: service level that provides preferred handling
+            - Hard QoS: service level that provides reserved network resources
+            - PBR: uses route maps to match traffic criteria
+            - NBAR: identification tool ideal for handling web applications 
 
     1. ## Inter-VLAN routing
 
@@ -1293,6 +1332,13 @@
                 - Monitor mode
                 - Low impact mode
                 - High security mode
+            - 3つの役割
+                - Supplicant
+                    - Client的な
+                - Authentication server
+                    - username と password を管理する
+                - Authenticator
+                    - Supplicant と　Authentication server の仲立ち
         1. ### AAA 3つのセキュリティ機能
             - Authentication
                 - 認証
