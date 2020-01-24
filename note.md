@@ -814,6 +814,19 @@
 
                 # show ppp all
                 ```
+
+                - ユーザ名とパスワード
+                ```
+                    !! 双方向1
+                    (config) hostname R1
+                    (config) username R2 password morishima 
+                    !! 双方向2 
+                    (config) username R2 password morishima
+                    (config-if) ppp chap hostname R1
+                    !! 片方向
+                    (config) hostname R1
+                    (config-if) ppp chap password morishima
+                ```
             1. #### PAP
                 - clear text password
                 ```
@@ -827,6 +840,13 @@
                 (config-if) ppp authentication pap
                 (config-if) ppp pap sent-username R1 pass1
                 ```
+
+                - ユーザ名とパスワード
+                ```
+                    (config) username R2 password pass2 
+                    (config-if) ppp pap sent-username R1 pass1 
+                ```
+                
         1. ### Multilink PPP (MLPPP)
             ```
             !! Create multilink interface
