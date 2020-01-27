@@ -238,6 +238,8 @@
             PortFastポートがBPDU(STPのメッセ)を受信したらブロッキングする
             ```
             (config-if) spanning-tree bpduguard [ enable | disable ]
+            !! OR
+            (config) spanning-tree portfast bpduguard default
             ```
 
         1. ### Root Guard
@@ -816,6 +818,19 @@
 
                 # show ppp all
                 ```
+
+                - ユーザ名とパスワード
+                ```
+                    !! 双方向1
+                    (config) hostname R1
+                    (config) username R2 password morishima 
+                    !! 双方向2 
+                    (config) username R2 password morishima
+                    (config-if) ppp chap hostname R1
+                    !! 片方向
+                    (config) hostname R1
+                    (config-if) ppp chap password morishima
+                ```
             1. #### PAP
                 - clear text password
                 ```
@@ -829,6 +844,13 @@
                 (config-if) ppp authentication pap
                 (config-if) ppp pap sent-username R1 pass1
                 ```
+
+                - ユーザ名とパスワード
+                ```
+                    (config) username R2 password pass2 
+                    (config-if) ppp pap sent-username R1 pass1 
+                ```
+                
         1. ### Multilink PPP (MLPPP)
             ```
             !! Create multilink interface
@@ -985,11 +1007,13 @@
         1. ### Shaping
             - 定義した通信速度を超過した場合、それ以上のパケットはバッファに格納しておいて通信速度の超過が落ち着いてきてからトラフィックを送信していく方式
             - outbound にのみ設定可能
+            - Configured in bits per second
 
         1. ### Policing
             - 定義した通信速度を超過した場合、それ以上のパケットを破棄する。必ず破棄するわけではなく，バーストは許すときがある
             - inbound outbound 両方設定可能
             - IP precedence を書き換えることが可能
+            - Configured in bytes
 
         1. ### Others
             - CAR: policies traffic based on its bandwidth allocation
@@ -1357,6 +1381,12 @@
             | Standards | Open standard | Cisco proprietary |
             | Operation | Authentication and Authorization are combined in one function | AAA are separated |
             | Logging | No cammand logging | Full command logging |
+        1. ### Responses from TACACS+
+            - ACCEPT
+            - REJECT
+            - ERROR
+            - CONTINUE
+                - The user is prompted for additional authentication information.
         1. ### DHCP Snooping on switch 嗅ぐ->盗み見る
             ファイアウォールのようなセキュリティ機構
             1. #### 用語
