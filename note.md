@@ -775,6 +775,7 @@
 
         1. ### High-Level Data Link Control (HDLC)
             - keep-alive should be equal on both side
+            - Cisco default encapsulation type on serial interfaces
             - Basic setting
             ```
             (config) interface s0/0
@@ -802,6 +803,7 @@
                 - secure
                 - md5
                 - One way authentication
+                - Link Control Protocol (LCP) -> CHAP
                 ```
                 (config) hostname R1
                 !! username must match remote hostname
@@ -869,6 +871,7 @@
             1. #### note
                 - MTUとMaximum Segment Size (MSS)が減る
                 - Must create logical interface
+                - Delivery header is 24 bytes
             1. #### Basic
                 ```
                 (config) interface tunnel [number]
@@ -1335,6 +1338,7 @@
             - 3つの役割
                 - Supplicant
                     - Client的な
+                    - Authentication server, Authenticator とは EAPで通信
                 - Authentication server
                     - username と password を管理する
                 - Authenticator
